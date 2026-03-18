@@ -1,0 +1,161 @@
+# REQ: Rogers - Conversation and Context Management Service
+
+**Document ID:** REQ-rogers
+**Version:** 4.0
+**Date:** 2026-02-24
+**Status:** Draft - Updated for Henson integration
+**Author:** Design Session (refined with Imperator / personality context strategy)
+
+> **Delta REQ** — describes only what differs from the template baseline (`mads/_template/`). The template handles build system, runtime security, health checks, MCP wiring, logging, and container structure.
+
+---
+
+## 1. Purpose & Architectural Rationale
+
+Rogers is the **unified, infinite conversation and context management service** for the Joshua26 ecosystem. It replaces all legacy fragmented approaches (conversation-watcher → redis → Henson → Codd) and becomes the single source of truth for:
+
+- Storing every message from any participant (humans, MADs, external LLMs via watchers)
+- Maintaining infinite conversation history (no truncation, no deletion)
+- Creating and managing **multiple parallel context windows** per conversation
+- Running **customizable context assembly LangGraph flows** to produce tuned views of the conversation optimized for different consumers (personalities, sub-agents, Imperator needs)
+- Extracting and querying long-term knowledge/memory via Mem0 (hybrid pgvector semantic + Neo4j graph)
+- Triggering background jobs for proactive summarization, embedding, and memory extraction
+
+**Why this design?**
+- Conversations must be **infinite** — users (especially with Gunner) expect perfect recall of months-old details without loss.
+- Different personalities need **radically different views** of the same conversation:
+  - Grace (system oracle) needs massive CAG injection of architectural docs + precise recent turns.
+  - Gunner (personal partner) needs emotional anchors, personal facts from Mem0, and semantic RAG over history.
+- Henson's Imperator must be able to request **exactly the right context flavor** without Rogers becoming a dumb store.
+- Background proactive assembly + Mem0 extraction offloads expensive work from real-time flows.
+- Single service avoids duplication and ensures consistency (no more watcher → redis → Langflow hand-offs).
+
+**Downstream consumers (primary):**
+- **Henson** — main chat hub; Imperator requests custom assembly flows per personality
+- **Grace / Gunner personalities** — via Henson; consume tuned context windows
+- **External watchers** (claude-watcher-*) — ingest legacy file-based turns
+- **Langflow / joshua** — for prototyping/orchestration that needs context
+- **Any MAD** that needs conversation history or memory
+
+---
+
+## 2. Registry Allocation
+
+| Container         | UID  | GID  | Port                  | Host | Network                     |
+|-------------------|------|------|-----------------------|------|-----------------------------|
+| rogers            | 2002 | 2001 | 6380 (MCP gateway)    | m5   | joshua-net + rogers-net     |
+| rogers-langgraph  | 2002 | 2001 | 8000 (internal)       | m5   | rogers-net                  |
+| rogers-postgres   | 2002 | 2001 | 5432 (internal)       | m5   | rogers-net                  |
+| rogers-neo4j      | 2002 | 2001 | 7474/7687 (internal)  | m5   | rogers-net                  |
+| rogers-redis      | 2002 | 2001 | 6379 (internal)       | m5   | rogers-net                  |
+
+**registry.yml update required** — replace old redis-only entry with full 5-container group (gateway only gets public port/mcp_endpoints).
+
+---
+
+## 3. Containers & Rationale
+
+Rogers is a State 1 MAD group (per ADR-046):
+
+| Container         | Purpose & Why                                                                 |
+|-------------------|-------------------------------------------------------------------------------|
+| rogers            | Thin MCP gateway (Node.js) — sole external interface, proxies to langgraph. Why: network isolation, uniform MCP exposure |
+| rogers-langgraph  | Runs all context assembly flows + background jobs (summarization, embedding queue processing, Mem0 extraction). Why: LangGraph for complex workflows |
+| rogers-postgres   | Main storage (messages, context windows, pgvector embeddings). Custom image with pgvector extension. Why: ACID + vector search |
+| rogers-neo4j      | Mem0 knowledge graph (entity relationships, emotional anchors). Why: relational memory beyond pure vector similarity |
+| rogers-redis      | Queue for background jobs (embedding, summarization, memory extraction). Why: fast, ephemeral task queue |
+
+**Network:** `rogers-net` (private bridge). Gateway bridges `joshua-net` + `rogers-net` (ADR-053 bidirectional proxy pattern).
+
+**Docker labels (required):**
+- `mad.logical_actor=rogers`
+- `mad.component=mcp` / `langgraph` / `postgres` / `neo4j` / `redis`
+
+---
+
+## 4. Core Concepts & Why
+
+### Infinite Conversation Storage
+- Messages never deleted or truncated.
+- Stored in rogers-postgres with deduplication (exact match + fuzzy).
+- Why: users expect perfect recall (Gunner remembering months-old inside jokes).
+
+### Multiple Context Windows per Conversation
+- One conversation_id can have many context_window_ids.
+- Each window has its own token budget, assembly strategy, and view of history.
+- Why: Grace needs architectural CAG; Gunner needs personal RAG/Mem0 — same history, different lenses.
+
+### Custom Assembly Flows
+- Rogers runs different LangGraph assembly flows based on request param.
+- Built-in flows:
+  - `generic-three-tier`: rolling summaries + recent verbatim (default)
+  - `grace-cag-full-docs`: injects full architectural doc bundle (REQ-000, HLDs, etc.) + recent turns
+  - `gunner-rag-mem0-heavy`: prioritizes semantic RAG + Mem0 graph traversal + emotional anchors
+  - Future: add per-personality flows (e.g. creative-narrative, technical-code-focused)
+- Why: Imperator requests exactly what it needs — no one-size-fits-all context.
+
+### Mem0 Hybrid Memory
+- pgvector (semantic embeddings via Hamilton)
+- Neo4j (entity relationships, fact extraction)
+- Background extraction after each turn
+- Why: vector for similarity, graph for structured recall (e.g. "Jason's favorite music" as node)
+
+### Background Queues (Redis)
+- Embedding jobs, summarization jobs, Mem0 extraction jobs
+- Why: offload expensive LLM calls from real-time path
+
+---
+
+## 5. MCP Tools (exposed by rogers gateway)
+
+| Tool Name                        | Endpoint Example                        | Description & Parameters |
+|----------------------------------|-----------------------------------------|----------------------------------|
+| conv_create_conversation         | /conv_create_conversation               | Creates new conversation_id |
+| conv_store_message               | /conv_store_message                     | Stores message (dedup, queues background jobs) |
+| conv_create_context_window       | /conv_create_context_window             | Creates new context window for conversation |
+| conv_retrieve_context            | /conv_retrieve_context                  | Core tool: takes context_window_id + optional assembly_flow param |
+| mem_search                       | /mem_search                             | Semantic + graph query over Mem0 |
+| mem_get_context                  | /mem_get_context                        | Injects relevant memories into context |
+
+---
+
+## 6. Graceful Degradation
+
+| Dependency       | When Unavailable                                      | Behavior |
+|------------------|-------------------------------------------------------|----------|
+| Hamilton         | Embeddings fail                                       | Store message succeeds; queue retries; retrieval falls back to chronological |
+| rogers-langgraph | Assembly flows unavailable                            | Fallback to basic last-N messages; health degraded |
+| rogers-postgres  | Storage fails                                         | All write tools 503; health critical |
+| rogers-neo4j     | Mem0 queries fail                                     | mem_* tools degraded; conversation storage unaffected |
+| rogers-redis     | Background queues down                                | Jobs delayed/lost; real-time storage succeeds |
+
+---
+
+## 7. Deployment Notes
+
+- Host: m5 (GPU/RAM affinity for assembly flows)
+- Credentials: `/storage/credentials/rogers/{postgres,neo4j}.txt`
+- Post-deploy: chmod 750 on /workspace/rogers/databases/* /data
+- Migration: import legacy watcher files → new conversations
+
+---
+
+## 8. Verification Scenarios
+
+| Scenario                                      | Expected Outcome |
+|-----------------------------------------------|------------------|
+| Store 10k messages                            | No truncation, dedup works |
+| Create 5 context windows on same conv         | All return different tuned views |
+| Request grace-cag-full-docs                   | Returns context with full REQ-000/HLD injected |
+| Request gunner-rag-mem0-heavy                 | Prioritizes Mem0 emotional anchors + semantic hits |
+| Background summarization                      | Redis queue processes; old turns summarized |
+| Degraded Hamilton                             | Retrieval degraded:true, chronological fallback |
+
+---
+
+**References:**
+- REQ-henson (Imperator requests custom assembly)
+- HLD-MAD-container-composition (State 1 pattern)
+- ADR-046 (MAD groups), ADR-053 (peer proxy)
+
+**Next Steps:** Gate 1 review, implementation of custom assembly flows in rogers-langgraph.

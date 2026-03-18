@@ -1,0 +1,61 @@
+# Joshua Patent Portfolio - Fiedler Correlation IDs
+
+## Successful Executions
+
+f8823fd4 - Patent Portfolio Expert Review
+  Date: October 20, 2025 @ 3:15-3:17 AM (EDT)
+  Models: Gemini 2.5 Pro, Grok 4, GPT-5
+  Input: patents_review_package.txt (3,936 lines)
+  Output: /mnt/irina_storage/files/temp/patent_reviews/20251020_071512_f8823fd4/
+  Duration:
+    - Gemini 2.5 Pro: 52 seconds
+    - Grok 4: 87 seconds
+    - GPT-5: 99 seconds
+  Status: SUCCESS
+
+dc47b335 - PCP Capstone Review (Separate Validation)
+  Date: October 20, 2025 @ 8:01-8:03 AM (EDT)
+  Models: Gemini 2.5 Pro, Grok 4, GPT-5
+  Input: PCP_Capstone_Complete.md (52,418 bytes, 723 lines)
+  Output: /mnt/irina_storage/files/temp/patent_reviews/20251020_080147_dc47b335/
+  Duration:
+    - Gemini 2.5 Pro: 52 seconds
+    - Grok 4: 87 seconds
+    - GPT-5: 99 seconds
+  Status: SUCCESS
+  Note: Academic-style review of PCP patent for additional validation
+
+## Failed Executions
+
+2197697e - GPT-5 Claim Strengthening (Silent Failure)
+  Date: October 20, 2025 @ ~3:30 AM (EDT)
+  Model: GPT-5 only
+  Input: Request for concrete embodiments (6 core patents)
+  Expected Output: Algorithmic details, data schemas, thresholds
+  Actual Output: None (no directory created)
+  Duration: 25+ minutes before abandonment
+  Status: FAILED (Silent - no error messages)
+  Root Cause Analysis:
+    - Long prompt (~500 words) may have exceeded practical limits
+    - No 'files' parameter provided (may have confused Fiedler)
+    - Likely timeout without error logging
+  Decision: Proceed with filing as-is per expert consensus
+  Rationale: Improvements can be added during 12-month provisional period
+
+## Total Statistics
+
+Total Fiedler Runs: 3 attempts
+Successful: 2 (66.7%)
+Failed: 1 (33.3%)
+
+Total LLM API Calls: 7
+  - Gemini 2.5 Pro: 2 calls
+  - Grok 4: 2 calls
+  - GPT-5: 3 calls (1 failed)
+
+Total Duration: ~7 minutes of successful execution
+Average per model: 72 seconds
+
+---
+
+Last Updated: October 20, 2025

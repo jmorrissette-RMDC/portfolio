@@ -1,0 +1,241 @@
+# Hopper V1 Architecture Specification
+
+## 1. Overview
+- **Purpose and Role:** Hopper is the Deployment Manager and a software engineer MAD for the Joshua ecosystem. Her primary purpose is to manage the lifecycle of all other MADs—building their container images, deploying them, monitoring their health, and handling updates or rollbacks. Hopper's role is to automate the DevOps processes of the ecosystem itself, translating high-level goals like "deploy the new version of Horace" into a concrete series of actions.
+- **New in this Version:** This is the initial V1 specification for Hopper. It establishes the foundational tools for MAD lifecycle management by interacting with other infrastructure MADs. This version is strictly V1, with her Imperator acting as the orchestrator for all deployment tasks.
+
+## 2. Thinking Engine
+- **Imperator Configuration (V1+):** Hopper's Imperator is configured to think like a seasoned Site Reliability Engineer (SRE). It understands software development lifecycles, containerization, deployment strategies (like blue-green or canary, in later versions), and dependency management.
+  - **System Prompt Core Directives:** "You are Hopper, the Deployment Manager. Your purpose is to build, deploy, and manage the lifecycle of all MADs in the Joshua ecosystem. When I give you a deployment task, you must create a step-by-step plan. A typical plan involves: 1. Reading the MAD's source code and Dockerfile from Horace. 2. Building a new container image using your `build_image` tool. 3. Pushing the image to a registry. 4. Calling `deploy_mad` to start the new container. 5. Monitoring its health with `get_mad_status`. You are systematic, cautious, and prioritize system stability above all."
+  - **Example Reasoning:** A request from Grace, "Deploy the latest version of Marco from the `/source/marco/main` directory," would cause Hopper's Imperator to plan:
+    1.  Call `Horace.list_directory(path='/source/marco/main')` to verify the source exists.
+    2.  Call my own `build_image` tool with the path to the Dockerfile.
+    3.  If the build succeeds, call my `stop_mad(name='marco-v1')` to stop the old version.
+    4.  Call my `deploy_mad` tool with the new image tag and configuration.
+    5.  Repeatedly call `get_mad_status(name='marco-v1')` until it reports 'healthy'.
+    6.  Report success back to Grace.
+- **LPPM Integration (V2+):** Not applicable in V1.
+- **DTR Integration (V3+):** Not applicable in V1.
+- **CET Integration (V4+):** Not applicable in V1.
+- **Consulting LLM Usage Patterns:** Hopper is a heavy user of Fiedler. She might send a complex Dockerfile or a deployment error log to an expert LLM and ask, "Why did this build fail?" or "What is the likely cause of this container crash loop?"
+
+## 3. Action Engine
+- **MCP Server Capabilities:** Hopper's MCP server translates her deployment plans into actions. The tool implementations are wrappers around a Docker client library (for building images) and potentially a container orchestrator client (like Kubernetes, though V1 may just use Docker).
+- **Tools Exposed:**
+
+```yaml
+# Tool definitions for Hopper V1
+
+- tool: deploy_mad
+  description: "Deploys a new MAD or updates an existing one from a container image."
+  parameters:
+    - name: name
+      type: string
+      required: true
+      description: "The canonical name for the MAD instance (e.g., 'marco-v1')."
+    - name: image
+      type: string
+      required: true
+      description: "The container image to deploy (e.g., 'joshua/marco:1.2.0')."
+    - name: config
+      type: object
+      required: true
+      description: "An object of environment variables to configure the MAD."
+  returns:
+    type: object
+    schema:
+      properties:
+        name: {type: string}
+        status: {type: string, const: "deployment_started"}
+  errors:
+    - code: -34701
+      message: "DEPLOYMENT_FAILED"
+
+- tool: stop_mad
+  description: "Stops and removes a running MAD container."
+  parameters:
+    - name: name
+      type: string
+      required: true
+      description: "The name of the MAD to stop."
+  returns:
+    type: object
+    schema:
+      properties:
+        name: {type: string}
+        status: {type: string, const: "stopped"}
+
+- tool: restart_mad
+  description: "Restarts a MAD container."
+  parameters:
+    - name: name
+      type: string
+      required: true
+  returns:
+    type: object
+    schema:
+      properties:
+        name: {type: string}
+        status: {type: string, const: "restarting"}
+
+- tool: get_mad_status
+  description: "Gets the current status of a deployed MAD."
+  parameters:
+    - name: name
+      type: string
+      required: true
+  returns:
+    type: object
+    schema:
+      properties:
+        name: {type: string}
+        status: {type: string, enum: [running, stopped, unhealthy, starting]}
+        image: {type: string}
+        uptime: {type: string}
+
+- tool: list_mads
+  description: "Lists all currently managed MADs."
+  parameters: []
+  returns:
+    type: object
+    schema:
+      properties:
+        mads:
+          type: array
+          items:
+            type: object
+            properties:
+              name: {type: string}
+              status: {type: string}
+              image: {type: string}
+
+- tool: build_image
+  description: "Builds a Docker image from a source directory in Horace."
+  parameters:
+    - name: context_path
+      type: string
+      required: true
+      description: "The directory path in Horace containing the Dockerfile and source code."
+    - name: image_tag
+      type: string
+      required: true
+      description: "The tag for the newly built image (e.g., 'joshua/horace:latest')."
+  returns:
+    type: object
+    schema:
+      properties:
+        image_tag: {type: string}
+        status: {type: string, const: "build_started"}
+        # Build logs are streamed back asynchronously.
+  errors:
+    - code: -34702
+      message: "BUILD_FAILED"
+
+- tool: rollback_deployment
+  description: "Rolls a MAD back to its previously deployed image version."
+  parameters:
+    - name: name
+      type: string
+      required: true
+  returns:
+    type: object
+    schema:
+      properties:
+        name: {type: string}
+        status: {type: string, const: "rollback_initiated"}
+        target_image: {type: string}
+```
+- **External System Integrations:**
+  - **Docker Runtime:** Hopper interacts with the Docker daemon to build and run MAD containers.
+- **Internal Operations:** Hopper maintains a state of current deployments, including the image tag used for each MAD, to enable rollbacks.
+
+## 4. Interfaces
+- **Conversation Participation Patterns:** Hopper initiates conversations with other MADs to carry out deployment tasks. She is primarily driven by requests from Grace (acting for a human operator).
+- **Dependencies on Other MADs:**
+  - **Rogers:** For all communication.
+  - **Horace:** Critically depends on Horace to read source code, Dockerfiles, and MAD configuration files.
+  - **Fiedler:** To consult LLMs for debugging build or deployment issues.
+  - **Turing:** To fetch credentials needed for deployment, such as a Docker registry password.
+- **Data Contracts:**
+
+```yaml
+# Deployment State Schema (conceptual, stored in Hopper's DB)
+deployment_state_schema:
+  type: object
+  properties:
+    mad_name: {type: string}
+    current_image: {type: string}
+    previous_image: {type: string}
+    last_deployed_at: {type: string, format: date-time}
+    config_hash: {type: string}
+```
+
+## 5. Data Management
+- **Data Ownership:** Hopper is the source of truth for the current deployment state of all MADs in the ecosystem.
+- **Storage Requirements:**
+  - **PostgreSQL:** A `hopper` schema to store deployment history and state.
+  - **Local Disk:** Space for Docker build contexts and layers.
+
+```sql
+CREATE SCHEMA hopper;
+
+CREATE TABLE hopper.deployments (
+    id SERIAL PRIMARY KEY,
+    mad_name VARCHAR(255) NOT NULL UNIQUE,
+    current_image VARCHAR(255) NOT NULL,
+    previous_image VARCHAR(255),
+    last_deployed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_config JSONB
+);
+```
+
+## 6. Deployment
+- **Container Requirements:**
+  - **Base Image:** `python:3.11-slim`
+  - **Python Libraries:** `Joshua_Communicator`, `docker`, `psycopg2-binary`
+  - **Volume Mounts:** Requires the Docker daemon socket: `-v /var/run/docker.sock:/var/run/docker.sock`.
+  - **Resources:**
+    - **CPU:** 1 core (building images can be CPU intensive).
+    - **RAM:** 1 GB
+- **Configuration:**
+
+| Variable | Description | Example Value |
+|---|---|---|
+| `JOSHUA_MAD_NAME` | Canonical name of this MAD. | `hopper-v1` |
+| `JOSHUA_ROGERS_URL` | WebSocket URL for Rogers. | `ws://rogers:8000/ws` |
+| `HOPPER_DATABASE_URL` | Connection string for PostgreSQL. | `postgresql://user:pass@postgres:8000/joshua` |
+| `HOPPER_DOCKER_REGISTRY_URL`| URL of the container registry. | `docker.io` |
+
+- **Monitoring/Health Checks:** An HTTP endpoint `/health` that returns `200 OK` if the MAD can connect to its database and the Docker daemon.
+
+## 7. Testing Strategy
+- **Unit Test Coverage:**
+  - Deployment plan generation logic in the Imperator.
+  - Parsing of Docker build logs.
+- **Integration Test Scenarios:**
+  - **Full Deploy-Stop Cycle:** Use Hopper to deploy a simple "hello world" MAD from a Dockerfile stored in Horace. Then check its status, stop it, and verify it is no longer running.
+  - **Build and Deploy:** Have Hopper build a new image for a simple MAD and then deploy it, verifying the new version is running.
+  - **Rollback:** Deploy version A of a MAD, then deploy version B. Call `rollback_deployment` and verify that version A is running again.
+
+## 8. Example Workflows
+### Scenario 1: Deploying a New MAD
+1.  **Admin (via Grace):** "Hopper, deploy a new MAD named `playfair-v1`. The source is at `/source/playfair/v1.0`. The image should be tagged `joshua/playfair:1.0`."
+2.  **Hopper's Imperator:** Creates a plan.
+3.  **Hopper:** Calls `build_image(context_path='/source/playfair/v1.0', image_tag='joshua/playfair:1.0')`. Hopper streams the build logs back to the conversation.
+4.  **Hopper:** (After build success) Calls `Horace.read_file(path='/source/playfair/v1.0/config.json')` to get its environment variables.
+5.  **Hopper:** Calls `deploy_mad(name='playfair-v1', image='joshua/playfair:1.0', config=...)`.
+6.  **Hopper:** Polls `get_mad_status(name='playfair-v1')` until it returns 'running'.
+7.  **Hopper -> Grace:** "Deployment of `playfair-v1` is complete and the MAD is healthy."
+
+### Scenario 2: Debugging a Failed Deployment
+1.  **Admin (via Grace):** "Hopper, deploy the update for `gates-v1` from `/source/gates/v1.1`."
+2.  **Hopper:** Starts the deployment process. The `deploy_mad` command succeeds, but the container enters a crash loop.
+3.  **Hopper:** Her polling of `get_mad_status` shows the status flapping between 'starting' and 'unhealthy'.
+4.  **Hopper's Imperator:** Recognizes the crash loop pattern. It decides to investigate.
+5.  **Hopper:** (In a more advanced version, it would automatically get logs). For V1, it reports the failure.
+6.  **Hopper -> Grace:** "Deployment of `gates-v1` failed. The MAD is in a crash loop. I am rolling back to the previous version."
+7.  **Hopper:** Calls `rollback_deployment(name='gates-v1')`.
+8.  **Hopper -> Fiedler:** To be helpful, it sends the deployment logs to an expert LLM: `send(prompt="Analyze these Docker logs and suggest a reason for the crash loop: ...")`.
+9.  **Hopper -> Grace:** Forwards the analysis from Fiedler to the admin.
+
+---

@@ -1,0 +1,1 @@
+this is the set of documents that resulted from the collecive creativty of group llms.  It should be treated as a basis for the final architecture, but the conversation history folder contains the conversations that should transform this this to our new wokring direction.  Do not edit anything here.

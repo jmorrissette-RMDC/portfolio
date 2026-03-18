@@ -1,0 +1,129 @@
+# Host Override: Hymie (x.x.x.130)
+# Desktop automation server
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.hymie.yml up -d
+#
+# Runs: hymie
+#
+# NOTE: External volumes 'storage' and 'workspace' must be pre-created on Hymie:
+#   docker volume create --driver local \
+#     --opt type=nfs --opt o=addr=x.x.x.110,rw,nolock,soft \
+#     --opt device=:/mnt/storage storage
+#   docker volume create --driver local \
+#     --opt type=none --opt o=bind \
+#     --opt device=/mnt/workspace workspace
+
+# Disable all services except those that should run on Hymie
+services:
+  alexandria:
+    profiles: ["irina-only"]
+
+  alexandria-langgraph:
+    profiles: ["irina-only"]
+
+  alexandria-devpi:
+    profiles: ["irina-only"]
+
+  alexandria-verdaccio:
+    profiles: ["irina-only"]
+
+  alexandria-registry:
+    profiles: ["irina-only"]
+
+  template:
+    profiles: ["m5-only"]
+
+  template-langgraph:
+    profiles: ["m5-only"]
+
+  template-postgres:
+    profiles: ["m5-only"]
+
+  template-service:
+    profiles: ["m5-only"]
+
+  # Apgar MAD group — runs on M5
+  apgar:
+    profiles: ["m5-only"]
+
+  apgar-langgraph:
+    profiles: ["m5-only"]
+
+
+  starret:
+    profiles: ["irina-only"]
+
+  starret-langgraph:
+    profiles: ["irina-only"]
+
+  github-runner:
+    profiles: ["irina-only"]
+
+  # Rogers MAD group — all 5 containers run on M5
+  rogers:
+    profiles: ["m5-only"]
+
+  rogers-langgraph:
+    profiles: ["m5-only"]
+
+  rogers-postgres:
+    profiles: ["m5-only"]
+
+  rogers-neo4j:
+    profiles: ["m5-only"]
+
+  rogers-redis:
+    profiles: ["m5-only"]
+
+  # Henson MAD group — runs on M5
+  henson:
+    profiles: ["m5-only"]
+
+  henson-langgraph:
+    profiles: ["m5-only"]
+
+  henson-postgres:
+    profiles: ["m5-only"]
+
+  henson-nginx:
+    profiles: ["m5-only"]
+
+  henson-openwebui:
+    profiles: ["m5-only"]
+
+  hopper:
+    profiles: ["m5-only"]
+
+  hopper-langgraph:
+    profiles: ["m5-only"]
+
+  kaiser:
+    profiles: ["m5-only"]
+
+  kaiser-langgraph:
+    profiles: ["m5-only"]
+
+  kaiser-postgres:
+    profiles: ["m5-only"]
+
+
+
+  sutherland:
+    profiles: ["m5-only"]
+
+  sutherland-langgraph:
+    profiles: ["m5-only"]
+
+  sutherland-ray-head:
+    profiles: ["m5-only"]
+
+  sutherland-postgres:
+    profiles: ["m5-only"]
+
+  brin:
+    profiles: ["irina-only"]
+
+  malory:
+    profiles: ["m5-only"]
+
+  # Conversation Watcher for Hymie

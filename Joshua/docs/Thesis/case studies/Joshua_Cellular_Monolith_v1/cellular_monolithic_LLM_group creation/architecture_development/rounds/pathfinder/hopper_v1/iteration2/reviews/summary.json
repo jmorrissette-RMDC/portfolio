@@ -1,0 +1,105 @@
+{
+  "correlation_id": "5459b4c3",
+  "timestamp": "20251013_163757",
+  "prompt": "<redacted - 393 chars>",
+  "prompt_length": 393,
+  "files": [
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/REVIEW_INSTRUCTIONS.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/synthesis.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/REVIEW_CRITERIA.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/ANCHOR_OVERVIEW.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/SYSTEM_DIAGRAM.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/NON_FUNCTIONAL_REQUIREMENTS.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/MAD_ROSTER.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/V1_PHASE1_BASELINE.md",
+    "/mnt/irina_storage/files/temp/hopper_v1_iteration2_review_package/ARCHITECTURE_GUIDELINES.md"
+  ],
+  "package_metadata": {
+    "num_files": 9,
+    "total_size": 76569,
+    "total_lines": 1238,
+    "text_files": 9,
+    "binary_files": 0
+  },
+  "models": [
+    "gemini-2.5-pro",
+    "gpt-4o",
+    "deepseek-ai/DeepSeek-R1",
+    "grok-4-0709",
+    "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    "Qwen/Qwen2.5-72B-Instruct-Turbo",
+    "gpt-4-turbo"
+  ],
+  "results": [
+    {
+      "model": "gemini-2.5-pro",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/hopper_v1_iteration2_reviews/20251013_163757_5459b4c3/gemini-2.5-pro.md",
+      "duration": 44.74,
+      "tokens": {
+        "prompt": 17130,
+        "completion": 618
+      }
+    },
+    {
+      "model": "gpt-4o",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/hopper_v1_iteration2_reviews/20251013_163757_5459b4c3/gpt-4o.md",
+      "duration": 9.99,
+      "tokens": {
+        "prompt": 17074,
+        "completion": 33
+      }
+    },
+    {
+      "model": "deepseek-ai/DeepSeek-R1",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/hopper_v1_iteration2_reviews/20251013_163757_5459b4c3/deepseek-ai_DeepSeek-R1.md",
+      "duration": 116.09,
+      "tokens": {
+        "prompt": 17357,
+        "completion": 3459
+      }
+    },
+    {
+      "model": "grok-4-0709",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/hopper_v1_iteration2_reviews/20251013_163757_5459b4c3/grok-4-0709.md",
+      "duration": 46.66,
+      "tokens": {
+        "prompt": 17130,
+        "completion": 375
+      }
+    },
+    {
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/hopper_v1_iteration2_reviews/20251013_163757_5459b4c3/meta-llama_Llama-3.3-70B-Instruct-Turbo.md",
+      "duration": 1.95,
+      "tokens": {
+        "prompt": 17165,
+        "completion": 31
+      }
+    },
+    {
+      "model": "Qwen/Qwen2.5-72B-Instruct-Turbo",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/hopper_v1_iteration2_reviews/20251013_163757_5459b4c3/Qwen_Qwen2.5-72B-Instruct-Turbo.md",
+      "duration": 11.43,
+      "tokens": {
+        "prompt": 17208,
+        "completion": 806
+      }
+    },
+    {
+      "model": "gpt-4-turbo",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/hopper_v1_iteration2_reviews/20251013_163757_5459b4c3/gpt-4-turbo.md",
+      "duration": 3.81,
+      "tokens": {
+        "prompt": 17137,
+        "completion": 26
+      }
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+# Joshua26 Service Registry
+# Defines service accounts and ports for all MADs
+
+services:
+
+
+  # === CORE SERVICES ===
+  starret:
+    uid: 2001
+    gid: 2001  # administrators
+    port: 8010
+    host: irina
+    description: Git safety net + MCP git tools
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  rogers:
+    uid: 2002
+    gid: 2001  # administrators
+    port: 6380
+    host: m5
+    description: Conversation memory + context management (5-container MAD group gateway)
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+
+  henson:
+    uid: 2033
+    gid: 2001  # administrators
+    port: 9224  # single port — serves MCP at /mcp and UI at / via gateway ui_proxy
+    host: m5
+    description: Human Interaction Hub / Universal Switchboard (chat UIs, persona-driven imperators, UI proxy)
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  sutherland:
+    uid: 2007
+    gid: 2001  # administrators
+    port: 11435  # MCP endpoint (API on port 80)
+    host: m5
+    gpu: v100-32gb, p40-pool (3x24gb)
+    description: GPUStack cluster manager for local LLMs
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  malory:
+    uid: 2008
+    gid: 2001  # administrators
+    port: 9222
+    host: m5
+    description: Playwright browser automation (headless)
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  hymie:
+    uid: 2009
+    gid: 2001  # administrators
+    port: 9223
+    host: hymie
+    description: Desktop automation via uinput (human-like input simulation)
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  brin:
+    uid: 2020
+    gid: 2001  # administrators
+    port: 8002
+    host: irina
+    description: MCP server for GSuite (Docs, Sheets, Drive, Slides, Calendar)
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+
+  # === STATE 1 TEMPLATE ===
+  template:
+    uid: 2031
+    gid: 2001  # administrators
+    port: 6340
+    host: m5
+    description: State 1 MAD template (copy-paste starting point for new MADs)
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  # === APGAR (M5) ===
+  apgar:
+    uid: 2032
+    gid: 2001
+    port: 6341
+    host: m5
+    description: Ecosystem observability MAD (gateway) — metrics query, log query, automated diagnostics
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  # === BLUEPRINT (IRINA) ===
+  blueprint:
+    uid: 2035
+    gid: 2001  # administrators
+    port: 6342
+    host: irina
+    description: Architect's multi-agent CLI workbench (browser UI + xterm.js + isolated CLI containers)
+
+  # === ALEXANDRIA (IRINA) ===
+  alexandria:
+    uid: 2017
+    gid: 2001  # administrators
+    port: 9229
+    host: irina
+    description: Supply Chain Wall — PyPI (Devpi) + NPM (Verdaccio) + Docker images (alexandria-registry) caching proxies
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  # === HOPPER (M5) — eMAD library, hosted by Kaiser ===
+  hopper:
+    uid: 2034
+    gid: 2001  # administrators
+    port: 9225
+    host: m5
+    description: The Engineering Department — eMAD library (SDLC + Quorum Engine). Hosted by Kaiser. No standalone containers.
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  # === JERRY MAGUIRE (M5) — eMAD library, hosted by Kaiser ===
+  jerry-maguire:
+    uid: 2037
+    gid: 2001  # administrators
+    port: 9226  # runs inside Kaiser — no standalone port
+    host: m5
+    description: The Job Hunter — eMAD library (autonomous job search, resume generation, application submission). Hosted by Kaiser. No standalone containers.
+    note: eMAD — access via kaiser_chat("jerry-maguire", ...)
+
+  # === KAISER (M5) — State 3 MAD, eMAD host ===
+  kaiser:
+    uid: 2036
+    gid: 2001  # administrators
+    port: 9226
+    host: m5
+    description: eMAD hosting MAD (State 3). Executes subject-domain eMAD libraries installed from Alexandria. First State 3 MAD.
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+  # === MUYBRIDGE (M5) — GPU video processing ===
+  muybridge:
+    uid: 2038
+    gid: 2001  # administrators
+    port: 8011
+    host: m5
+    gpu: v100-sxm2-nvlink-2x32gb
+    description: GPU-accelerated video processing (Wan2.1 VACE-14B FSDP + FaceSwap). 26 MCP tools.
+    mcp_endpoints:
+      health: /health
+      stream: /mcp
+
+# Security groups (ADR-043)
+groups:
+  administrators:
+    gid: 2001
+    description: Primary group for ALL service containers (per REQ-000)
+
+  joshua-services:
+    gid: 2000
+    description: OBSOLETE - Use GID 2001 (administrators) instead
+
+  joshua-readonly:
+    gid: 2002
+    description: Monitoring/logging - RO everywhere

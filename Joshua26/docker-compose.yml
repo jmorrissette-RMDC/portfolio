@@ -1,0 +1,1407 @@
+# Joshua26 Root Compose
+#
+# This file defines all MADs. Use with host-specific override:
+#   On Irina: docker compose -f docker-compose.yml -f docker-compose.irina.yml up -d
+#   On M5:    docker compose -f docker-compose.yml -f docker-compose.m5.yml up -d
+#
+# Or use COMPOSE_FILE env var:
+#   export COMPOSE_FILE=docker-compose.yml:docker-compose.irina.yml
+#
+# REQ-000 §7.3 — DO NOT use `depends_on: condition: service_healthy`.
+# Each container must start independently and handle unavailable dependencies
+# via its own graceful degradation logic (§7.1). depends_on violates the
+# independence mandate and is redundant when §7.1 is properly implemented.
+# Non-compliant MADs (pending remediation): apgar
+
+services:
+
+  # === THE HUB ===
+
+
+  # === CORE SERVICES (Irina) ===
+
+  # === STARRET (IRINA) — Release Department: git operations, GitHub API, CI/CD ===
+
+  starret:
+    build:
+      context: .
+      dockerfile: mads/starret/starret/Dockerfile
+    container_name: starret
+    networks:
+      - joshua-net
+      - starret-net
+    ports:
+      - "8010:8010"   # MCP gateway — host-bound (same pattern as alexandria:9229)
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    labels:
+      mad.logical_actor: starret
+      mad.component: gateway
+    profiles: ["irina-only"]
+    restart: unless-stopped
+
+  starret-langgraph:
+    build:
+      context: .
+      dockerfile: mads/starret/starret-langgraph/Dockerfile
+      network: host
+    container_name: starret-langgraph
+    networks:
+      - starret-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - STARRET_REPO_PATH=/storage/projects/Joshua26
+      - GITHUB_OWNER=
+    labels:
+      mad.logical_actor: starret
+      mad.component: langgraph
+    profiles: ["irina-only"]
+    restart: unless-stopped
+
+  github-runner:
+    image: ghcr.io/actions/actions-runner:2.332.0@sha256:8c3f5970b8ceb90cbd3e89b80c6806bb74d9c31686e9177c743323a4539d12f5
+    container_name: github-runner
+    hostname: github-runner
+    networks:
+      - starret-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # EX-STARRET-001: docker socket required for image builds
+      - storage:/storage
+      - workspace:/workspace
+    # EX-STARRET-002: runner user (UID 1001) — cannot apply user: 2001:2001 without forking image
+    environment:
+      - REPO_URL=
+      - RUNNER_NAME=irina-runner
+      - RUNNER_LABELS=self-hosted,irina
+      - RUNNER_WORKDIR=/workspace/starret/_work
+      - PIP_INDEX_URL=http://irina:3141/root/pypi/+simple/
+      - PIP_TRUSTED_HOST=irina
+      - NPM_CONFIG_REGISTRY=http://irina:4873
+    labels:
+      mad.logical_actor: starret
+      mad.component: runner
+    profiles: ["irina-only"]
+    restart: unless-stopped
+
+  # === ROGERS — Conversation & Memory MAD Group (M5) ===
+  # 5-container MAD group on rogers-net (private bridge).
+  # Gateway (rogers) additionally bridges to joshua-net for external MCP access.
+  # All internal containers stay on rogers-net only per ADR-046/ADR-053.
+
+  rogers:
+    build:
+      context: .
+      dockerfile: mads/rogers/rogers/Dockerfile
+    image: joshua26/rogers
+    container_name: rogers
+    hostname: rogers
+    restart: unless-stopped
+    networks:
+      - joshua-net
+      - rogers-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "6380:6380"
+    labels:
+      - mad.logical_actor=rogers
+      - mad.component=gateway
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:6380/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  rogers-langgraph:
+    build:
+      context: .
+      dockerfile: mads/rogers/rogers-langgraph/Dockerfile
+    image: joshua26/rogers-langgraph
+    container_name: rogers-langgraph
+    hostname: rogers-langgraph
+    user: "2002:2001"
+    restart: unless-stopped
+    networks:
+      - rogers-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - POSTGRES_HOST=rogers-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=rogers
+      - POSTGRES_USER=rogers
+      - REDIS_HOST=rogers-redis
+      - REDIS_PORT=6379
+      - NEO4J_HOST=rogers-neo4j
+      - GATEWAY_URL=http://rogers:6380
+      - QUEUE_POLL_INTERVAL=5
+    labels:
+      - mad.logical_actor=rogers
+      - mad.component=langgraph
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  rogers-postgres:
+    build:
+      context: .
+      dockerfile: mads/rogers/rogers-postgres/Dockerfile
+    image: joshua26/rogers-postgres
+    container_name: rogers-postgres
+    hostname: rogers-postgres
+    restart: unless-stopped
+    networks:
+      - rogers-net
+    volumes:
+      - storage:/storage
+      - /mnt/ssd1/workspace/rogers/databases/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=rogers
+      - POSTGRES_USER=rogers
+      - POSTGRES_PASSWORD_FILE=/storage/credentials/rogers/postgres.txt
+    labels:
+      - mad.logical_actor=rogers
+      - mad.component=postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "rogers", "-d", "rogers"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  rogers-neo4j:
+    image: neo4j:5@sha256:f95a1eac8a2e311b9aff78aae9b9793f265b464eb1b097cd2b1fb82c96de4ba3
+    container_name: rogers-neo4j
+    hostname: rogers-neo4j
+    restart: unless-stopped
+    networks:
+      - rogers-net
+    volumes:
+      - storage:/storage
+      - /mnt/ssd1/workspace/rogers/databases/neo4j/data:/data
+      - /mnt/ssd1/workspace/rogers/databases/neo4j/logs:/logs
+    env_file:
+      - /storage/credentials/rogers/neo4j.txt
+    environment:
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_server_memory_heap_initial__size=512m
+      - NEO4J_server_memory_heap_max__size=1G
+    labels:
+      - mad.logical_actor=rogers
+      - mad.component=neo4j
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7474/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  rogers-redis:
+    image: redis:7-alpine@sha256:02f2cc4882f8bf87c79a220ac958f58c700bdec0dfb9b9ea61b62fb0e8f1bfcf
+    container_name: rogers-redis
+    hostname: rogers-redis
+    restart: unless-stopped
+    networks:
+      - rogers-net
+    volumes:
+      - storage:/storage
+      - /mnt/ssd1/workspace/rogers/databases/redis/data:/data
+    command: redis-server --appendonly yes --dir /data
+    labels:
+      - mad.logical_actor=rogers
+      - mad.component=redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+
+
+  brin:
+    build:
+      context: .
+      dockerfile: mads/brin/Dockerfile
+    image: joshua26/brin
+    container_name: brin
+    restart: unless-stopped
+    networks:
+      - joshua-net
+    ports:
+      - "8002:8002"
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - GOOGLE_CREDENTIALS=/storage/credentials/oauth/google/credentials.json
+      - GOOGLE_TOKEN=/storage/credentials/oauth/google/token.json
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8002/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+
+  # === COMPUTE SERVICES (M5) ===
+
+  # ── Sutherland MAD group (State 1) ────────────────────────────────────────
+  # GPU compute platform. All inference routes through sutherland.
+  # Model aliases: imperator-gunner, imperator-grace, imperator-henson, agent-small
+
+  sutherland:
+    build:
+      context: .
+      dockerfile: mads/sutherland/sutherland/Dockerfile
+    image: joshua26/sutherland
+    container_name: sutherland
+    hostname: sutherland
+    restart: unless-stopped
+    networks:
+      - joshua-net
+      - sutherland-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "11435:11435"
+    environment:
+      - CONFIG_PATH=/app/mads/sutherland/sutherland/config.json
+    labels:
+      - "mad.logical_actor=sutherland"
+      - "mad.component=mcp"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:11435/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  sutherland-langgraph:
+    build:
+      context: .
+      dockerfile: mads/sutherland/sutherland-langgraph/Dockerfile
+    image: joshua26/sutherland-langgraph
+    container_name: sutherland-langgraph
+    restart: unless-stopped
+    networks:
+      - sutherland-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - PG_HOST=sutherland-postgres
+      - PG_PORT=5432
+      - PG_DATABASE=sutherland
+      - PG_USER=sutherland
+      - PG_CREDENTIALS_FILE=/storage/credentials/sutherland/postgres.txt
+      - RAY_HEAD_URL=http://sutherland-ray-head:8000
+    labels:
+      - "mad.logical_actor=sutherland"
+      - "mad.component=langgraph"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  sutherland-ray-head:
+    # Ray cluster head + Ray Serve API (GGUF deployments; see serve_app.py)
+    # REQ §4.1: rayproject/ray pinned
+    build:
+      context: mads/sutherland/sutherland-ray-head
+      dockerfile: Dockerfile
+    image: joshua26/sutherland-ray-head
+    container_name: sutherland-ray-head
+    hostname: sutherland-ray-head
+    restart: unless-stopped
+    runtime: nvidia
+    networks:
+      - joshua-net
+      - sutherland-net
+    environment:
+      # P40s only — V100s (SXM2 pair + PCIe) reserved exclusively for Muybridge
+      - NVIDIA_VISIBLE_DEVICES=GPU-85428df3-58b9-3a8c-5828-f1485e16101f,GPU-f9261c91-103c-adf8-5984-e27053f569ae,GPU-75cb090e-024b-0375-6a5c-ceb8d05f84d1
+    command: >-
+      bash -lc "ray start --head --node-ip-address=sutherland-ray-head --num-gpus=3 --resources='{\"gpu_class_p40\": 3}' &&
+      sleep 5 && exec python /app/serve_app.py"
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    labels:
+      - "mad.logical_actor=sutherland"
+      - "mad.component=ray-head"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids:
+                - GPU-83f24e08-37ee-ada6-34bb-0472c5efddce
+                - GPU-f89e7d81-cd60-f037-df10-b81b9b3ca461
+                - GPU-ae7d7dc4-6cdb-0427-dc81-bab768435b6e
+                - GPU-85428df3-58b9-3a8c-5828-f1485e16101f
+                - GPU-f9261c91-103c-adf8-5984-e27053f569ae
+                - GPU-75cb090e-024b-0375-6a5c-ceb8d05f84d1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/-/healthz')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  sutherland-postgres:
+    build:
+      context: .
+      dockerfile: mads/sutherland/sutherland-postgres/Dockerfile
+    image: joshua26/sutherland-postgres
+    container_name: sutherland-postgres
+    restart: unless-stopped
+    networks:
+      - sutherland-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+      - /mnt/nvme/workspace/sutherland/databases/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=sutherland
+      - POSTGRES_DB=sutherland
+      - POSTGRES_PASSWORD_FILE=/storage/credentials/sutherland/postgres.txt
+      - PGDATA=/workspace/sutherland/databases/postgres/data
+    labels:
+      - "mad.logical_actor=sutherland"
+      - "mad.component=postgres"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sutherland", "-d", "sutherland"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  malory:
+    build:
+      context: .
+      dockerfile: mads/malory/Dockerfile
+    image: joshua26/malory
+    container_name: malory
+    restart: unless-stopped
+    networks:
+      - joshua-net
+    ports:
+      - "9222:9222"
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:9222/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # === EXTERNAL LLM ACCESS ===
+
+  # === CONVERSATION WATCHERS ===
+
+  # === INFRASTRUCTURE SERVICES ===
+
+  # === STATE 1 TEMPLATE (M5) ===
+
+  template:
+    build:
+      context: .
+      dockerfile: mads/_template/template/Dockerfile
+    image: joshua26/template
+    container_name: template
+    restart: unless-stopped
+    networks:
+      - joshua-net
+      - template-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "6340:6340"
+    environment:
+      - MCP_PORT=6340
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:6340/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  template-langgraph:
+    build:
+      context: .
+      dockerfile: mads/_template/template-langgraph/Dockerfile
+    image: joshua26/template-langgraph
+    container_name: template-langgraph
+    restart: unless-stopped
+    networks:
+      - template-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - POSTGRES_HOST=template-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=template
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  template-postgres:
+    build:
+      context: .
+      dockerfile: mads/_template/template-postgres/Dockerfile
+    image: joshua26/template-postgres
+    container_name: template-postgres
+    restart: unless-stopped
+    networks:
+      - template-net
+    volumes:
+      - storage:/storage
+      - /mnt/ssd1/workspace/template/databases/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=template
+      - POSTGRES_PASSWORD_FILE=/storage/credentials/databases/template.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "template", "-d", "testdb"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  template-service:
+    build:
+      context: .
+      dockerfile: mads/_template/template-service/Dockerfile
+    image: joshua26/template-service
+    container_name: template-service
+    restart: unless-stopped
+    networks:
+      - template-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  # === APGAR (M5) ===
+
+  apgar:
+    build:
+      context: .
+      dockerfile: mads/apgar/apgar/Dockerfile
+    image: joshua26/apgar
+    container_name: apgar
+    restart: unless-stopped
+    user: "2032:2001"
+    networks:
+      - joshua-net
+      - apgar-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "6341:6341"
+    environment:
+      - MCP_PORT=6341
+    labels:
+      - "mad.logical_actor=apgar"
+      - "mad.component=mcp"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:6341/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  apgar-langgraph:
+    build:
+      context: .
+      dockerfile: mads/apgar/apgar-langgraph/Dockerfile
+    image: joshua26/apgar-langgraph
+    container_name: apgar-langgraph
+    restart: unless-stopped
+    user: "2032:2001"
+    networks:
+      - apgar-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    labels:
+      - "mad.logical_actor=apgar"
+      - "mad.component=langgraph"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  apgar-prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: apgar-prometheus
+    restart: unless-stopped
+    user: "2032:2001"
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/workspace/apgar/data/prometheus", "--storage.tsdb.retention.time=15d", "--web.enable-lifecycle"]
+    networks:
+      - apgar-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+      - ./mads/apgar/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    labels:
+      - "mad.logical_actor=apgar"
+
+  apgar-loki:
+    image: grafana/loki:2.9.2
+    container_name: apgar-loki
+    restart: unless-stopped
+    user: "2032:2001"
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    networks:
+      - apgar-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+      - ./mads/apgar/config/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+    labels:
+      - "mad.logical_actor=apgar"
+
+  apgar-grafana:
+    image: grafana/grafana:10.2.0
+    container_name: apgar-grafana
+    restart: unless-stopped
+    user: "2032:2001"
+    networks:
+      - apgar-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - GF_PATHS_DATA=/workspace/apgar/data/grafana
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    labels:
+      - "mad.logical_actor=apgar"
+
+  apgar-metrics-scraper:
+    build:
+      context: .
+      dockerfile: mads/apgar/apgar-metrics-scraper/Dockerfile
+    image: joshua26/apgar-metrics-scraper
+    container_name: apgar-metrics-scraper
+    restart: unless-stopped
+    user: "2032:2001"
+    networks:
+      - apgar-net
+    labels:
+      - "mad.logical_actor=apgar"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9091/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  # === DESKTOP AUTOMATION (Hymie) ===
+
+  hymie:
+    build:
+      context: .
+      dockerfile: mads/hymie/Dockerfile
+    image: joshua26/hymie
+    container_name: hymie
+    restart: unless-stopped
+    user: "1000:1000"
+    devices:
+      - /dev/uinput:/dev/uinput
+    group_add:
+      - "995"  # input group for uinput access
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      - DISPLAY=:0
+      - WAYLAND_DISPLAY=wayland-0
+      - XDG_RUNTIME_DIR=/run/user/1000
+      - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+      - MCP_PORT=9223
+      - LOG_LEVEL=info
+    volumes:
+      - storage:/storage:ro
+      - workspace:/workspace
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - /run/user/1000:/run/user/1000
+      - /home/aristotle9/Pictures/Screenshots:/screenshots
+    networks:
+      - joshua-net
+
+  # === HENSON (M5) ===
+
+  henson:
+    build:
+      context: .
+      dockerfile: mads/henson/henson/Dockerfile
+    image: joshua26/henson
+    container_name: henson
+    restart: unless-stopped
+    networks:
+      - joshua-net
+      - henson-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "9224:9224"
+    environment:
+      - MCP_PORT=9224
+    labels:
+      - "mad.logical_actor=henson"
+      - "mad.component=mcp"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:9224/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == m5
+
+  henson-langgraph:
+    build:
+      context: .
+      dockerfile: mads/henson/henson-langgraph/Dockerfile
+    image: joshua26/henson-langgraph
+    container_name: henson-langgraph
+    restart: unless-stopped
+    networks:
+      - henson-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - CONFIG_PATH=/app/config.json
+      - HENSON_TIMING=true   # set true to emit per-phase latency logs (TIMING prefix)
+    labels:
+      - "mad.logical_actor=henson"
+      - "mad.component=langgraph"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == m5
+
+  henson-postgres:
+    build:
+      context: .
+      dockerfile: mads/henson/henson-postgres/Dockerfile
+    image: joshua26/henson-postgres
+    container_name: henson-postgres
+    restart: unless-stopped
+    networks:
+      - henson-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - POSTGRES_USER=henson
+      - POSTGRES_DB=hensondb
+      - POSTGRES_PASSWORD_FILE=/storage/credentials/henson/postgres.txt
+      - PGDATA=/workspace/henson/databases/postgres/data
+    labels:
+      - "mad.logical_actor=henson"
+      - "mad.component=postgres"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "henson", "-d", "hensondb"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == m5
+
+  henson-nginx:
+    image: nginxinc/nginx-unprivileged:alpine
+    container_name: henson-nginx
+    restart: unless-stopped
+    networks:
+      - henson-net
+    volumes:
+      - workspace:/workspace
+    # nginx.conf is provided at runtime — see §10.4 and nginx.conf in mads/henson/henson-nginx/
+    # On m5: cp mads/henson/henson-nginx/nginx.conf /workspace/henson/config/nginx.conf
+    command: ["nginx", "-g", "daemon off;", "-c", "/workspace/henson/config/nginx.conf"]
+    labels:
+      - "mad.logical_actor=henson"
+      - "mad.component=nginx"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == m5
+
+  henson-openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: henson-openwebui
+    restart: unless-stopped
+    networks:
+      - henson-net
+    volumes:
+      - workspace:/workspace
+      - /mnt/nvme/workspace/henson/ui_data:/app/backend/data
+    # EX-HENSON-002: DATA_DIR redirects app writes to /workspace/henson/ui_data.
+    # The bind mount to suppress the upstream VOLUME /app/backend/data is host-path-specific.
+    environment:
+      - DATA_DIR=/workspace/henson/ui_data
+      - OPENAI_API_BASE_URL=http://henson-langgraph:8000/v1
+      - OPENAI_API_KEY=henson-internal
+      - ENABLE_FORWARD_USER_INFO_HEADERS=true
+      # Phase 2: STT / TTS / Web Search / Image Generation
+      # API keys configured via Open WebUI Admin panel (stored in ui_data — not in compose)
+      - AUDIO_STT_ENGINE=deepgram
+      - AUDIO_TTS_ENGINE=elevenlabs
+      - AUDIO_TTS_API_KEY=<api-key>
+      - AUDIO_TTS_VOICE=2UIat0yQOZCAmXke4sVD
+      - AUDIO_TTS_MODEL=eleven_multilingual_v2
+      - ENABLE_SEARCH_QUERY=true
+      - SEARCH_ENGINE=google_pse
+      - ENABLE_IMAGE_GENERATION=true
+      - IMAGE_GENERATION_ENGINE=openai
+      - IMAGES_OPENAI_API_BASE_URL=http://henson-langgraph:8000/v1
+      - IMAGES_OPENAI_API_KEY=henson-internal
+    labels:
+      - "mad.logical_actor=henson"
+      - "mad.component=ui"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == m5
+
+  # === ALEXANDRIA (IRINA) ===
+
+  alexandria:
+    build:
+      context: .
+      dockerfile: mads/alexandria/alexandria/Dockerfile
+    container_name: alexandria
+    networks:
+      - joshua-net
+      - alexandria-net
+    ports:
+      - "9229:9229"   # MCP gateway — host-bound (same pattern as rogers:6380)
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    labels:
+      mad.logical_actor: alexandria
+      mad.component: mcp
+    profiles: ["irina-only"]
+    restart: unless-stopped
+
+  alexandria-langgraph:
+    build:
+      context: .
+      dockerfile: mads/alexandria/alexandria-langgraph/Dockerfile
+    container_name: alexandria-langgraph
+    networks:
+      - alexandria-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    labels:
+      mad.logical_actor: alexandria
+      mad.component: langgraph
+    profiles: ["irina-only"]
+    restart: unless-stopped
+
+  alexandria-devpi:
+    build:
+      context: .
+      dockerfile: mads/alexandria/alexandria-devpi/Dockerfile
+    container_name: alexandria-devpi
+    networks:
+      - alexandria-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "3141:3141"   # PyPI cache — host-bound (EX-ALEXANDRIA-001)
+    labels:
+      mad.logical_actor: alexandria
+      mad.component: devpi
+    profiles: ["irina-only"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3141/+api/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  alexandria-verdaccio:
+    image: verdaccio/verdaccio:5.31.1
+    container_name: alexandria-verdaccio
+    command: verdaccio --config /workspace/alexandria/config/verdaccio/config.yaml
+    networks:
+      - alexandria-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace  # config at /workspace/alexandria/config/verdaccio/
+      - /mnt/storage/packages/npm:/verdaccio/storage  # EX-ALEXANDRIA-004: suppress anonymous VOLUME
+    ports:
+      - "4873:4873"   # NPM cache — host-bound (EX-ALEXANDRIA-001)
+    labels:
+      mad.logical_actor: alexandria
+      mad.component: verdaccio
+    profiles: ["irina-only"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4873/-/ping', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  alexandria-registry:
+    image: registry:2.8.3
+    container_name: alexandria-registry
+    command: /bin/registry serve /workspace/alexandria/config/registry/config.yml
+    networks:
+      - alexandria-net
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    volumes:
+      - storage:/storage
+      - workspace:/workspace  # config at /workspace/alexandria/config/registry/
+      - /mnt/storage/images/alexandria-registry:/var/lib/registry  # EX-ALEXANDRIA-005: suppress anonymous VOLUME
+    ports:
+      - "5000:5000"   # Docker registry — host-bound (EX-ALEXANDRIA-001)
+    labels:
+      mad.logical_actor: alexandria
+      mad.component: registry
+    profiles: ["irina-only"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/v2/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  # === HOPPER (M5) ===
+
+  hopper:
+    build:
+      context: .
+      dockerfile: mads/hopper/hopper/Dockerfile
+    image: joshua26/hopper
+    container_name: hopper
+    restart: unless-stopped
+    networks:
+      - joshua-net
+      - hopper-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "9225:9225"
+    environment:
+      - MCP_PORT=9225
+    labels:
+      - "mad.logical_actor=hopper"
+      - "mad.component=mcp"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:9225/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == m5
+
+  hopper-langgraph:
+    build:
+      context: .
+      dockerfile: mads/hopper/hopper-langgraph/Dockerfile
+    image: joshua26/hopper-langgraph
+    container_name: hopper-langgraph
+    restart: unless-stopped
+    networks:
+      - hopper-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    labels:
+      - "mad.logical_actor=hopper"
+      - "mad.component=langgraph"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == m5
+
+  # ============================================================
+  # Kaiser — eMAD hosting MAD, State 3 (m5, port 9226)
+  # ============================================================
+
+  kaiser:
+    build:
+      context: .
+      dockerfile: mads/kaiser/kaiser/Dockerfile
+    image: joshua26/kaiser
+    container_name: kaiser
+    restart: unless-stopped
+    networks:
+      - joshua-net
+      - kaiser-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "9226:9226"
+    extra_hosts:
+      - "irina:x.x.x.110"   # nginx PyPI proxy needs to resolve irina (not a container)
+    labels:
+      - "mad.logical_actor=kaiser"
+      - "mad.component=mcp"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9226/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  kaiser-langgraph:
+    build:
+      context: .
+      dockerfile: mads/kaiser/kaiser-langgraph/Dockerfile
+      network: host   # Alexandria access during build
+    image: joshua26/kaiser-langgraph
+    container_name: kaiser-langgraph
+    restart: unless-stopped
+    networks:
+      - kaiser-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - KAISER_DB_HOST=kaiser-postgres
+      - KAISER_DB_PORT=5432
+      - KAISER_DB_NAME=kaiser
+      - KAISER_DB_USER=kaiser
+      - KAISER_DB_PASSWORD_FILE=/storage/credentials/databases/kaiser.env
+    labels:
+      - "mad.logical_actor=kaiser"
+      - "mad.component=langgraph"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  kaiser-postgres:
+    build:
+      context: .
+      dockerfile: mads/kaiser/kaiser-postgres/Dockerfile
+    image: joshua26/kaiser-postgres
+    container_name: kaiser-postgres
+    restart: unless-stopped
+    networks:
+      - kaiser-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+      - /mnt/nvme/workspace/kaiser/databases/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=kaiser
+      - POSTGRES_DB=kaiser
+      - POSTGRES_PASSWORD_FILE=/storage/credentials/databases/kaiser.env
+    labels:
+      - "mad.logical_actor=kaiser"
+      - "mad.component=postgres"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kaiser", "-d", "kaiser"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # ============================================================
+  # Blueprint — Architect's Workbench (irina, port 6342)
+  # ============================================================
+
+  blueprint:
+    build:
+      context: .
+      dockerfile: mads/blueprint/blueprint-core/Dockerfile
+    image: joshua26/blueprint
+    container_name: blueprint
+    hostname: blueprint
+    user: "2035:2001"
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+      - joshua-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "6342:6342"
+    environment:
+      - POSTGRES_HOST=blueprint-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=blueprint
+      - POSTGRES_USER=blueprint
+      - POSTGRES_PASSWORD_FILE=/storage/credentials/blueprint/postgres.txt
+      - QUORUM_MODEL_ANTHROPIC=claude-opus-4-6
+      - QUORUM_MODEL_GOOGLE=gemini-2.5-pro
+      - QUORUM_MODEL_OPENAI=o3
+      - QUORUM_LEAD=google
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=core"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6342/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  blueprint-claude:
+    build:
+      context: .
+      dockerfile: mads/blueprint/blueprint-claude/Dockerfile
+    image: joshua26/blueprint-claude
+    container_name: blueprint-claude
+    hostname: blueprint-claude
+    # No user: override — sshd requires root to bind port 22 and do privilege separation.
+    # The blueprint user (2035) is the SSH login user (AllowUsers blueprint in sshd_config).
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+      - joshua-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - HOME=/workspace/blueprint/home/claude
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=claude"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "pgrep sshd"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  blueprint-gemini:
+    build:
+      context: .
+      dockerfile: mads/blueprint/blueprint-gemini/Dockerfile
+    image: joshua26/blueprint-gemini
+    container_name: blueprint-gemini
+    hostname: blueprint-gemini
+    # No user: override — sshd requires root to bind port 22 and do privilege separation.
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+      - joshua-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - HOME=/workspace/blueprint/home/gemini
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=gemini"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "pgrep sshd"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  blueprint-postgres:
+    build:
+      context: .
+      dockerfile: mads/blueprint/blueprint-postgres/Dockerfile
+    image: joshua26/blueprint-postgres
+    container_name: blueprint-postgres
+    hostname: blueprint-postgres
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    environment:
+      - POSTGRES_USER=blueprint
+      - POSTGRES_DB=blueprint
+      - POSTGRES_PASSWORD_FILE=/storage/credentials/blueprint/postgres.txt
+      - PGDATA=/workspace/blueprint/databases/postgres/data
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=postgres"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "blueprint", "-d", "blueprint"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  blueprint-qdrant:
+    image: qdrant/qdrant
+    container_name: blueprint-qdrant
+    hostname: blueprint-qdrant
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+    volumes:
+      - workspace:/workspace
+    environment:
+      - QDRANT__STORAGE__STORAGE_PATH=/workspace/blueprint/databases/qdrant
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=qdrant"
+    healthcheck:
+      disable: true  # qdrant/qdrant is a minimal Rust binary with no curl/wget
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  blueprint-qdrant-mcp:
+    build:
+      context: .
+      dockerfile: mads/blueprint/blueprint-qdrant-mcp/Dockerfile
+    image: joshua26/blueprint-qdrant-mcp
+    container_name: blueprint-qdrant-mcp
+    hostname: blueprint-qdrant-mcp
+    user: "2035:2001"
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+    environment:
+      - QDRANT_URL=http://blueprint-qdrant:6333
+      - FASTMCP_HOST=0.0.0.0
+      - FASTMCP_PORT=8000
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=qdrant-mcp"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(3); s.connect(('localhost', 8000)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  blueprint-memory:
+    build:
+      context: .
+      dockerfile: mads/blueprint/blueprint-memory/Dockerfile
+    image: joshua26/blueprint-memory
+    container_name: blueprint-memory
+    hostname: blueprint-memory
+    user: "2035:2001"
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+    volumes:
+      - workspace:/workspace
+    environment:
+      - MEMORY_FILE_PATH=/workspace/blueprint/databases/memory/memory.json
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=memory"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(0)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  blueprint-playwright:
+    build:
+      context: .
+      dockerfile: mads/blueprint/blueprint-playwright/Dockerfile
+    image: joshua26/blueprint-playwright
+    container_name: blueprint-playwright
+    hostname: blueprint-playwright
+    user: "2035:2001"
+    restart: unless-stopped
+    networks:
+      - blueprint-net
+    labels:
+      - "mad.logical_actor=blueprint"
+      - "mad.component=playwright"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8931' 2>/dev/null && exit 0 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # === Muybridge MAD group — GPU video processing (VACE + FaceSwap), runs on M5 ===
+
+  muybridge:
+    build:
+      context: .
+      dockerfile: mads/muybridge/muybridge/Dockerfile
+    image: joshua26/muybridge
+    container_name: muybridge
+    hostname: muybridge
+    restart: unless-stopped
+    networks:
+      - joshua-net
+      - muybridge-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    ports:
+      - "8011:8011"
+    labels:
+      - "mad.logical_actor=muybridge"
+      - "mad.component=mcp"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8011/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  muybridge-langgraph:
+    build:
+      context: .
+      dockerfile: mads/muybridge/muybridge-langgraph/Dockerfile
+      network: host
+    image: joshua26/muybridge-langgraph
+    container_name: muybridge-langgraph
+    hostname: muybridge-langgraph
+    restart: unless-stopped
+    networks:
+      - muybridge-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock  # EX-MUYBRIDGE-002: docker lifecycle management (faceswap)
+    group_add:
+      - "125"  # docker group GID on m5 (confirmed: getent group docker = docker:x:125)
+    environment:
+      - MUYBRIDGE_RUNPOD_MODE=${MUYBRIDGE_RUNPOD_MODE:-pod}
+      - MUYBRIDGE_RUNPOD_POD_URL=${MUYBRIDGE_RUNPOD_POD_URL:-}
+      - MUYBRIDGE_RUNPOD_ENDPOINT_ID=${MUYBRIDGE_RUNPOD_ENDPOINT_ID:-}
+      - GOOGLE_APPLICATION_CREDENTIALS=/storage/credentials/oauth/google/credentials.json
+      - MUYBRIDGE_GCS_BUCKET=${MUYBRIDGE_GCS_BUCKET:-joshua26-muybridge-jobs}
+    labels:
+      - "mad.logical_actor=muybridge"
+      - "mad.component=langgraph"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # muybridge-vace: REMOVED — VACE inference moved to RunPod (A100/H100)
+  # Local V100 produced blank output despite successful FSDP init (2026-03-14).
+  # Code preserved at mads/muybridge/muybridge-vace/ for reference.
+
+  muybridge-faceswap:
+    build:
+      context: .
+      dockerfile: mads/muybridge/muybridge-faceswap/Dockerfile
+      network: host
+    image: joshua26/muybridge-faceswap
+    container_name: muybridge-faceswap
+    hostname: muybridge-faceswap
+    restart: "no"  # managed on-demand by muybridge-langgraph — not auto-restarted
+    runtime: nvidia
+    environment:
+      # One SXM2 — needs tensor cores; P40s insufficient for FaceSwap
+      - NVIDIA_VISIBLE_DEVICES=${MUYBRIDGE_FACESWAP_GPUS:-GPU-83f24e08-37ee-ada6-34bb-0472c5efddce}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    networks:
+      - muybridge-net
+    volumes:
+      - storage:/storage
+      - workspace:/workspace
+    labels:
+      - "mad.logical_actor=muybridge"
+      - "mad.component=faceswap"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+networks:
+  joshua-net:
+    external: true
+  starret-net:
+    driver: bridge
+  alexandria-net:
+    driver: bridge
+  template-net:
+    driver: bridge
+  apgar-net:
+    driver: bridge
+  rogers-net:
+    driver: bridge
+  hopper-net:
+    driver: bridge
+  kaiser-net:
+    driver: bridge
+  henson-net:
+    driver: bridge
+  sutherland-net:
+    driver: bridge
+  blueprint-net:
+    driver: bridge
+  muybridge-net:
+    driver: bridge
+
+volumes:
+  storage:
+    external: true
+  workspace:
+    external: true

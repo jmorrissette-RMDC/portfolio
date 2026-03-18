@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  synergos:
+    container_name: synergos-app
+    build: .
+    image: synergos:latest
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./data:/app/data
+      - ~/.Xauthority:/root/.Xauthority:ro
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+    labels:
+      - "com.synergos.historic=First AI-built application"
+      - "com.synergos.date=2025-10-16"
+      - "com.synergos.builders=6 LLMs in collaboration"

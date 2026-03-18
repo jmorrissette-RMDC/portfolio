@@ -1,0 +1,60 @@
+# Host Override: M5 (x.x.x.120)
+# Compute server - 6 GPUs, NVMe storage
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.m5.yml up -d
+#
+# Runs: sutherland, malory, rogers (all 5 containers), template, apgar, henson (all 5 containers)
+
+# Disable storage/Irina services on M5 (they run on Irina)
+services:
+
+  starret:
+    profiles: ["irina-only"]
+
+  starret-langgraph:
+    profiles: ["irina-only"]
+
+  github-runner:
+    profiles: ["irina-only"]
+
+  alexandria:
+    profiles: ["irina-only"]
+
+  alexandria-langgraph:
+    profiles: ["irina-only"]
+
+  alexandria-devpi:
+    profiles: ["irina-only"]
+
+  alexandria-verdaccio:
+    profiles: ["irina-only"]
+
+  alexandria-registry:
+    profiles: ["irina-only"]
+
+  brin:
+    profiles: ["irina-only"]
+
+  blueprint:
+    profiles: ["irina-only"]
+
+  blueprint-claude:
+    profiles: ["irina-only"]
+
+  blueprint-gemini:
+    profiles: ["irina-only"]
+
+  blueprint-postgres:
+    profiles: ["irina-only"]
+
+  blueprint-qdrant:
+    profiles: ["irina-only"]
+
+  blueprint-qdrant-mcp:
+    profiles: ["irina-only"]
+
+  blueprint-memory:
+    profiles: ["irina-only"]
+
+  blueprint-playwright:
+    profiles: ["irina-only"]

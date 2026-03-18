@@ -1,0 +1,31 @@
+# Patent 06 CRS - NEEDS
+
+## Required Diagrams
+- [ ] System architecture diagram
+- [ ] Performance comparison charts
+- [ ] Implementation workflow
+- [ ] Validation results visualization
+
+## Required Evidence/Metrics
+- [ ] Observes all tiers, provides recommendations without blocking
+- [ ] Evidence from: CRS architecture as part of PCP design
+
+## Source Material References
+- Primary sources: Papers 04, 01
+
+## Prior Art Distinctions
+- Key differentiator: parallel metacognitive layer providing non-blocking advisory recommendations across all processing tiers
+
+## USPTO Filing Requirements
+- [ ] Convert to PDF
+- [ ] Verify micro entity status
+- [ ] Add cover sheet
+- [ ] Include all referenced figures
+
+## Questions for Inventor
+1. Specific metrics for Observes all tiers, provides recommendations without blocking?
+2. Additional evidence from CRS architecture as part of PCP design?
+3. Implementation details to strengthen claims?
+
+---
+*Status: Draft application created, needs diagrams and detailed metrics*

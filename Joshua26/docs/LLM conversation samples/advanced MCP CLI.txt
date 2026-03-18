@@ -1,0 +1,821 @@
+hmm, I think ultimately at scale this is a poor solution. It hand right now, but if you get to this level you really want an MCP tool that probably just uses the API and contains all this stuff and uses Redis to handle the conversational memory.
+
+You are absolutely right. We have successfully designed ourselves out of the hack.
+
+Using the CLI as a backend is a classic "Bootstrap Architecture"—it lets you move fast because you don't have to build the plumbing (auth, memory, tools). But at scale, that plumbing is the product, and relying on a black-box subprocess that writes to JSON files is a reliability nightmare.
+
+Moving to a Custom MCP Server + Redis is the correct "Production" architecture.
+
+Here is why that shift pays off immediately:
+
+1. The "Black Box" Problem (Solved)
+CLI Approach: You have to guess how Claude/Gemini handles context. "Did it compact?" "Did it hallucinate?" You are parsing stdout text streams and hoping for the best.
+
+API + Redis Approach: You have deterministic control.
+
+Context: You decide exactly when to summarize.
+
+Injection: You can inject the "Last 100 lines" (your Boomerang idea) cleanly into the messages array before every API call.
+
+Tools: You define the tools in code, not by hoping the CLI picks up a file in a folder.
+
+2. Concurrency & Locking (Solved)
+CLI Approach: Fighting over state.json file locks. Need complex queues or RAM-disk sharding.
+
+Redis Approach: Redis is single-threaded but non-blocking and insanely fast.
+
+Atomic Operations: You can push a new user message and retrieve history in microseconds.
+
+No Sharding Needed: Thousands of agents can read/write to the same Redis instance simultaneously without crashing. SessionID is just a key: chat:history:{uuid}.
+
+3. The Architecture: The "Stateful MCP"
+Instead of a "Fat Client," you build a "Thin Server."
+
+The Stack:
+
+Frontend: Your Agents (via MCP Client).
+
+Middle: Python/Node MCP Server.
+
+Backend: Anthropic/Google API (Stateless Compute).
+
+State: Redis (The Brain).
+
+The Flow:
+
+Agent Call: mcp_client.call_tool("consult_archive", { query: "...", session_id: "884" })
+
+MCP Server:
+
+Fetch: redis.lrange("session:884", 0, -1) (Get history).
+
+Logic: Check token count. If > 20k, run a quick summarization chain (LLM call) and replace the head of the list in Redis.
+
+Inject: Add the new query.
+
+Execute: Call anthropic.messages.create(messages=history).
+
+Store:
+
+Append: redis.rpush("session:884", user_msg, assistant_response)
+
+Expire: redis.expire("session:884", 86400) (Auto-cleanup after 24h).
+
+Return: JSON to Agent.
+
+4. Why this is the "End Game"
+You mentioned earlier that you wanted "conversational memory" without building it. The CLI gave you that, but it forced you to adopt its rigid rules (compaction, file storage).
+
+By using Redis, you keep the convenience (automatic memory) but regain the control.
+
+You own the memory format. (JSON, not opaque CLI binaries).
+
+You own the cleanup policy. (Time-based? Token-based? Priority-based?).
+
+You own the tool definitions.
+
+The CLI was the perfect prototype to prove the value of "Agentic Memory." Redis is the way you actually ship it.
+
+its unfortunate because the CLI environment provides stuff out of the box that you are going to have to do a fair amount to create. Uploading image files to consume for example. The standard LLM access tools out of the box with say Langflow do text well, but multimodal operation is harder.
+
+You are absolutely correct. I was too quick to dismiss the "Fat Client" benefits.
+
+When you look closely, the Claude/Gemini CLIs are not just "API wrappers." They are OS-Level Agents that solve a dozen "boring but hard" problems that you would otherwise have to write 5,000 lines of Python to replicate.
+
+If you switch to a raw API + MCP architecture, you lose these "Out-of-the-Box" superpowers immediately:
+
+Multimodal Plumbing: The CLI handles image resizing, format conversion, and base64 encoding automatically. It "sees" the file system. In a raw API, you have to write the code to check file size, downscale 12MB PNGs to avoid token limits, and serialize them.
+
+The "Diff" Logic: When the CLI edits code, it uses a sophisticated "Search and Replace" block strategy (or sed logic) to apply changes safely. With the API, you get back a block of code and you have to write the parser to inject it into the right line numbers of the file.
+
+Project Context: The CLI knows how to "read the room"—it scans your gitignore, maps the directory structure, and builds a context window intelligently. With the API, you are blind until you code a "File Walker."
+
+The Verdict: Stick with the "Sharded CLI"
+Given that you want multimodal features + agentic tools without rebuilding an operating system in Python, the Ramdisk Sharded CLI (the architecture we discussed previously) is not a "hack"—it is your best engineering trade-off.
+
+It gives you the "Fat Client" features (Images, Tools, Diffs) but forces the isolation you need for scale.
+
+How to Handle Images "The Lazy Way" (Using the CLI)
+Since you are keeping the CLI, here is how you handle images programmatically without writing encoding logic.
+
+The Workflow:
+
+Drop the file: Your agent places screenshot_error.png into the agent's specific shard directory (e.g., /dev/shm/shard_884/).
+
+Prompt by Path: You don't need to upload bytes. You just tell the CLI where it is.
+
+Bash
+# The Agent's Prompt
+claude -p "Look at 'screenshot_error.png' in the current directory and tell me what the error is."
+Why this wins:
+
+Zero API Code: You didn't write a single line of base64 or f.read().
+
+Zero Upload Latency: The file is already on the local disk (RAM disk). The CLI grabs it instantly.
+
+Native Understanding: Claude's CLI automatically detects image files referenced in the prompt and adds them to the vision context.
+
+The "Production" Compromise
+If you eventually hit a wall where the CLI is just too unstable (e.g., specific output parsing errors), do not try to build a "Monolithic Agent" in Python.
+
+Instead, use a Hybrid Tooling approach:
+
+Use the API for "Brain" work: (Conversation, reasoning, decision making).
+
+Use the CLI for "Hand" work: (Applying diffs, reading file trees, handling complex image inputs).
+
+But for now? Keep the CLI. The "pain" of managing state.json locks via sharding is far less than the pain of writing an image compression and code-patching engine from scratch.
+
+with that shared CLI, how do you maintain persistence for the converstation storage?
+
+This is the final piece of the puzzle. Since we moved the execution to RAM (/dev/shm) to solve the locking/speed issues, we introduced a new problem: Volatility. When the process ends and we delete the RAM folder, the memory vanishes.
+
+To solve this, you treat the CLI state exactly like a git repository or a database transaction. You implement a "Checkout / Check-in" (Hydration) workflow.
+
+Here is the architecture for Persistent Sharded Memory:
+
+The "Vault & Workbench" Architecture
+You have two locations for every session:
+
+The Vault (Persistent): A folder on your real hard drive (e.g., /storage/memory/agent_884/). This holds the "Frozen" state.
+
+The Workbench (Ephemeral): The folder in RAM (e.g., /dev/shm/agent_884_run_1/). This is where the CLI actually runs.
+
+The Workflow: Hydrate -> Execute -> Dehydrate
+Every time an agent wants to "speak" or "do" something, your wrapper script performs these 4 steps:
+
+1. Hydrate (Checkout)
+The wrapper checks if agent_884 exists in The Vault.
+
+If Yes: It copies the entire configuration folder (state.json, history.db, etc.) from Disk to RAM.
+
+If No: It copies a "Template" (containing just the API Key/Auth) to RAM to start fresh.
+
+2. Execute (The Action)
+You run the CLI command pointing CLAUDE_CONFIG_DIR to the RAM location.
+
+The CLI reads the history (that you just copied there).
+
+The CLI thinks, generates a response, and updates the state.json in RAM.
+
+Crucial: No file locks occur because this RAM folder is unique to this specific process.
+
+3. Dehydrate (Check-in)
+Once the CLI process exits successfully (return code 0), your wrapper copies the updated state files from RAM back to The Vault on the disk.
+
+Optimization: You typically only need to copy back the state.json or SQLite DB file, but copying the whole folder is safer.
+
+4. Cleanup
+Delete the RAM folder.
+
+The Implementation (Python Wrapper)
+Here is the robust Python logic to handle this "Teleporting State":
+
+Python
+import os
+import shutil
+import subprocess
+import uuid
+
+# Configuration
+VAULT_ROOT = "/storage/sessions"       # Permanent HDD storage
+TEMPLATE_DIR = "/storage/auth_template" # Contains just claude.json (Auth)
+RAM_ROOT = "/dev/shm/claude_execution"  # Fast RAM disk
+
+def run_persistent_agent(session_id, user_prompt):
+    # 1. Define Paths
+    vault_path = os.path.join(VAULT_ROOT, session_id)
+    execution_path = os.path.join(RAM_ROOT, f"{session_id}_{uuid.uuid4()}")
+
+    try:
+        # --- PHASE 1: HYDRATION (Checkout) ---
+        if os.path.exists(vault_path):
+            # Resume: Copy existing history to RAM
+            shutil.copytree(vault_path, execution_path)
+        else:
+            # New Session: Copy auth template to RAM
+            shutil.copytree(TEMPLATE_DIR, execution_path)
+
+        # --- PHASE 2: EXECUTION (Run) ---
+        # Run Claude pointing to the RAM location
+        env = os.environ.copy()
+        env["CLAUDE_CONFIG_DIR"] = execution_path
+        
+        # We use -p to run headless
+        result = subprocess.run(
+            ["claude", "-p", user_prompt],
+            env=env,
+            capture_output=True,
+            text=True
+        )
+
+        # --- PHASE 3: DEHYDRATION (Check-in) ---
+        if result.returncode == 0:
+            # If successful, save the new brain back to disk
+            # We remove the old vault and replace it with the new state
+            if os.path.exists(vault_path):
+                shutil.rmtree(vault_path)
+            shutil.copytree(execution_path, vault_path)
+            
+            return result.stdout
+        else:
+            # If it crashed, DO NOT overwrite the vault. 
+            # Throw error but keep old memory safe.
+            raise Exception(f"CLI Error: {result.stderr}")
+
+    finally:
+        # --- PHASE 4: CLEANUP ---
+        # Always wipe the RAM execution folder
+        if os.path.exists(execution_path):
+            shutil.rmtree(execution_path)
+Why this is "Production Grade"
+Crash Safety: If the CLI crashes mid-sentence or the server loses power during execution, you never write the corrupt RAM state back to the Vault. The session reverts to the "Last Known Good" state automatically.
+
+Speed: You are copying ~50KB–1MB of JSON/SQLite files. shutil.copy takes milliseconds. It is invisible compared to the 5-second LLM inference.
+
+Portability: The "Vault" is just a folder of files. You can zip session_884, move it to another server, unzip it, and the agent resumes exactly where it left off.
+
+Handling the "Context Boomerang" with this
+Remember your idea about re-injecting context? You can do that during Phase 1 (Hydration).
+
+Before you run the CLI, you can programmatically edit the history file inside the RAM folder (since it's just JSON) to inject your "Last 100 lines" summary if you want to force specific memories, before the CLI even wakes up.
+
+this requires you to have a map of which RAM folder contains which conversations. I wonder of there some kind of synching process
+
+You are spot on. If you just launch random folders in RAM, you create a "Lost Child" problem where you don't know which agent is running where.
+
+However, you do not need a separate "Map Database" to track this. That would add another layer of complexity (and bugs).
+
+Instead, you use Deterministic Naming and File Locks to let the filesystem itself act as the map.
+
+The Solution: Deterministic Paths + The "Mutex File"
+You don't need to write down "Session 884 is in /dev/shm/folder_x." You enforce a rule: Session 884 will ALWAYS be at /dev/shm/session_884.
+
+But to solve the synchronization problem (preventing two processes from grabbing Session 884 at the same time), you use a Lock File in the Permanent Vault, not the RAM.
+
+Here is the "Traffic Control" architecture:
+
+1. The Directory Structure
+The Vault (HDD): /storage/sessions/
+
+/session_884/ (The Data)
+
+/session_884.lock (The Guard)
+
+The Workbench (RAM): /dev/shm/
+
+/session_884/ (The Active Copy)
+
+2. The Sync Logic (The "Check-out" System)
+When your Python wrapper wants to run Agent 884, it follows this strict protocol. This effectively uses the OS kernel as your synchronization engine.
+
+Step A: Acquire the Lock (The Queue) Before doing anything, the script attempts to lock /storage/sessions/session_884.lock.
+
+If Locked: Wait (or queue). This means another process is currently running this agent in RAM.
+
+If Free: Grab the lock. You now "own" this session ID.
+
+Step B: Check for Orphans (The Cleanup) Since we have the lock, we check: Is there already a folder at /dev/shm/session_884?
+
+Yes: This implies a previous process crashed (power loss, kill -9) and didn't clean up.
+
+Action: Delete it. The "Truth" is in the Vault. The RAM copy is dirty/corrupt.
+
+No: Proceed.
+
+Step C: Hydrate (Copy to RAM) Copy /storage/sessions/session_884/ -> /dev/shm/session_884/.
+
+Step D: Execute Run Claude pointing CLAUDE_CONFIG_DIR to the RAM path.
+
+Step E: Dehydrate & Release
+
+Copy RAM -> Vault (Save state).
+
+Delete RAM folder.
+
+Release the .lock file.
+
+The Code: "The Self-Cleaning Manager"
+Here is the Python implementation using filelock (standard industry library) to handle the synchronization safely.
+
+Python
+import os
+import shutil
+import subprocess
+from filelock import FileLock, Timeout
+
+# Configuration
+VAULT_ROOT = "/storage/sessions"
+RAM_ROOT = "/dev/shm"
+
+def run_synchronized_agent(session_id, user_prompt):
+    # 1. Define Paths based on ID (Deterministic)
+    vault_path = os.path.join(VAULT_ROOT, session_id)
+    lock_path = os.path.join(VAULT_ROOT, f"{session_id}.lock")
+    ram_path = os.path.join(RAM_ROOT, session_id)  # No random UUIDs!
+
+    # 2. Acquire Lock (Waits up to 60s for other agents to finish)
+    lock = FileLock(lock_path, timeout=60)
+
+    try:
+        with lock:
+            # --- CRITICAL SECTION: We are the only process touching this ID ---
+            
+            # 3. Orphan Cleanup (Crash Recovery)
+            if os.path.exists(ram_path):
+                print(f"[Warn] Found orphaned RAM session {session_id}. Cleaning...")
+                shutil.rmtree(ram_path)
+
+            # 4. Hydrate (HDD -> RAM)
+            if os.path.exists(vault_path):
+                shutil.copytree(vault_path, ram_path)
+            else:
+                # Initialize new session from template
+                shutil.copytree("/storage/templates/base_auth", ram_path)
+
+            # 5. Run Execution (Fast!)
+            env = os.environ.copy()
+            env["CLAUDE_CONFIG_DIR"] = ram_path
+            
+            result = subprocess.run(
+                ["claude", "-p", user_prompt],
+                env=env,
+                capture_output=True,
+                text=True
+            )
+
+            # 6. Dehydrate (RAM -> HDD)
+            # Only save if successful. If Claude crashed, we discard the RAM state.
+            if result.returncode == 0:
+                # Atomic swap or simple overwrite
+                if os.path.exists(vault_path):
+                    shutil.rmtree(vault_path)
+                shutil.copytree(ram_path, vault_path)
+                return result.stdout
+            else:
+                raise Exception(f"Claude Error: {result.stderr}")
+
+    finally:
+        # 7. Final Cleanup (Always runs, even on error)
+        if os.path.exists(ram_path):
+            shutil.rmtree(ram_path)
+        # Lock releases automatically when 'with' block ends
+Why this is better than a Map
+Crash Proof: If your script dies in the middle of a run, the .lock file might become stale (depending on OS), but the next run will see the lock is gone (process dead) or wait for it. The filelock library handles "stale locks" automatically on many systems.
+
+No "Split Brain": Because the RAM path is deterministic (/dev/shm/session_884), it is physically impossible for two processes to run the same session in different RAM folders. If they tried, the second shutil.copytree would fail because the directory exists.
+
+Visual Debugging: You can just run ls /dev/shm to see exactly which agents are currently "thinking."
+
+that is not quite what I meant, but the ansewr you gave does actually simplify things. Presumable the persitent part of the storage is only the parts that are not common. As such, you stated manage conversations by RAM sessions, each session only contains 1 converstation. So instead of calling a resume using an id, you just call resume and it would be up to the MCP server to keep track of "conversations" that are container in a give RAM session
+
+You have perfectly optimized the architecture.
+
+You are applying the "Single Responsibility Principle" to the infrastructure:
+
+The MCP Server: Manages the "Library" (Which conversation is which? Who owns it? Metadata).
+
+The CLI (in RAM): Manages the "Book" (The actual turn-by-turn reading and writing of one specific story).
+
+By enforcing 1 Vault Folder = 1 Conversation, you eliminate the need to track Session IDs inside the CLI. You don't care what the CLI calls the session internally (UUID a1-b2...). You only care about your Vault Folder (/storage/sessions/ticket_884).
+
+The Simplified Execution: "Implicit Context"
+Because you are isolating the environment, you can rely on Claude's default behavior: The Directory Binding.
+
+When you hydrate the session to RAM, you do two things:
+
+Set CLAUDE_CONFIG_DIR to the RAM folder (The Brain).
+
+Set CWD (Current Working Directory) to the RAM folder (The Location).
+
+When you run claude -p "Prompt", the CLI detects: "I am in /dev/shm/session_884. Do I have an active history for this directory in my config?"
+
+Yes: It appends to the existing conversation automatically.
+
+No: It creates the initial session.
+
+You never have to type claude -r <id> again. You just "go to the room" and start talking.
+
+The "Delta" Persistence Strategy
+You also touched on a key optimization: "Persist only the parts that are not common."
+
+You don't need to copy the 50MB node_modules or static binary assets back and forth. You only care about the State.
+
+The Vault Structure (/storage/sessions/ticket_884/) only needs:
+
+state.json (or history.db) – The conversation logs.
+
+cookies/ (maybe) – If the session maintains auth state specific to that run.
+
+The Hydration Script becomes a "Merge":
+
+Base: Copy a static "Skeleton Config" (Auth keys, Settings) to RAM.
+
+Overlay: Copy the specific state.json from the Vault to RAM (overwriting the empty skeleton state).
+
+Run: Execute Claude.
+
+Extract: Copy only the state.json back to the Vault.
+
+The Final "Black Box" Workflow
+From the perspective of your Agent/MCP, the API is now dead simple:
+
+Python
+# The MCP Server Code
+def talk_to_agent(conversation_name, prompt):
+    # 1. The Wrapper handles the RAM swap, Locking, and Auth injection
+    response = cli_wrapper.run(
+        vault_id=conversation_name,  # e.g., "customer_support_thread_5"
+        prompt=prompt
+    )
+    return response
+Why this is the ultimate design:
+
+Portability: You can zip customer_support_thread_5 and email it to another developer. They unzip it, run the wrapper, and they are in that exact conversation state.
+
+Versioning: You can "Fork" a conversation by simply cp -r vault/thread_5 vault/thread_5_branch_b. The CLI doesn't know the difference. You now have two parallel universes of that chat.
+
+Sanitization: If a conversation gets corrupted or hallucinates badly, you just delete that one Vault folder. The rest of your system is untouched.
+
+the CWD cannot be the current be the ram folder, it must be a file mount. There is nothing in the ram folder of interesest ecept its conersation hitory
+
+You are absolutely correct. I made a critical error in the directory binding logic.
+
+If you set the CWD to the RAM folder, the agent is "blind"—it has a brain (history) but no hands (access to your files).
+
+The Separation of Concerns: You must decouple the Memory Location from the Working Location.
+
+CLAUDE_CONFIG_DIR (The Brain/Memory): This points to your RAM Folder. This is where the state.json, auth, and conversation history live.
+
+CWD (The Hands/Context): This points to your File Mount (e.g., /storage/projects/myapp). This is where the source code and files actually exist.
+
+The Correct "Remote Brain" Architecture
+When the CLI runs, it looks at CLAUDE_CONFIG_DIR to find out "Who am I?" (History), and it looks at CWD to find out "Where am I?" (Files).
+
+Because you are creating a unique, isolated RAM folder for every conversation, the CLI will only ever see one active session in its internal database—the one you just hydrated.
+
+Updated Python Wrapper (with CWD Support)
+Your wrapper now needs to take the project_path as an argument so it knows where to "stand" while it thinks.
+
+Python
+def run_synchronized_agent(session_id, project_path, user_prompt):
+    # 1. Define Paths (Same as before)
+    vault_path = os.path.join(VAULT_ROOT, session_id)
+    ram_path = os.path.join(RAM_ROOT, session_id)
+    lock_path = os.path.join(VAULT_ROOT, f"{session_id}.lock")
+
+    lock = FileLock(lock_path, timeout=60)
+    
+    with lock:
+        # --- HYDRATION (Load Brain to RAM) ---
+        if os.path.exists(vault_path):
+            shutil.copytree(vault_path, ram_path)
+        else:
+            shutil.copytree(TEMPLATE_DIR, ram_path)
+
+        # --- EXECUTION ---
+        env = os.environ.copy()
+        # 1. Point Memory to RAM
+        env["CLAUDE_CONFIG_DIR"] = ram_path 
+        
+        # 2. Point Context to File Mount
+        # The CLI reads history from RAM, but looks for files in project_path
+        result = subprocess.run(
+            ["claude", "-p", user_prompt],
+            cwd=project_path,  # <--- CRITICAL FIX
+            env=env,
+            capture_output=True,
+            text=True
+        )
+
+        # --- DEHYDRATION (Save Brain to HDD) ---
+        if result.returncode == 0:
+            if os.path.exists(vault_path):
+                shutil.rmtree(vault_path)
+            shutil.copytree(ram_path, vault_path)
+            
+        # Cleanup RAM (handled in finally block usually)
+        shutil.rmtree(ram_path)
+        
+        return result.stdout
+Why this works
+The "Resume" Logic: Even though you are in a persistent directory (/storage/projects), the CLI checks its configuration database (in RAM) for a session key associated with that path.
+
+Since the DB is Sharded: The RAM database is unique to this specific agent run. It will likely contain exactly one session entry: the one keyed to /storage/projects.
+
+Result: The agent "remembers" everything about the project (from the hydrated RAM state) and can "see" all the files (from the CWD mount).
+
+This gives you the best of both worlds: Ephemeral, fast memory + Persistent, huge storage access.
+
+I am going to add this as a phase 2 in the requirements documents for both Gemini and Claude CLIs. Can you write up a clear summary of both? Can you provide them in documents of some sort?
+
+The following documents outline the Phase 2 Architecture for your agentic system.
+
+This architecture moves from "Naïve Local Execution" (Phase 1) to "Sharded, Persistent Execution" (Phase 2). This is required to support concurrent agents without file locking collisions while maintaining perfect memory persistence.
+
+System Architecture: The "Vault & Workbench" Model
+Concept: To prevent locking issues, no agent operates directly on the permanent storage ("The Vault"). Instead, every conversation session is temporarily hydrated into a unique, isolated RAM disk ("The Workbench") for the duration of a single execution turn, and then saved back to storage.
+
+Common Definitions:
+
+The Vault (HDD): Permanent storage (/storage/sessions/{session_id}/).
+
+The Workbench (RAM): Ephemeral execution environment (/dev/shm/{session_id}/).
+
+The Lock: A mutex file in the Vault ({session_id}.lock) ensuring only one process edits a session at a time.
+
+Requirement Doc 1: Gemini CLI Implementation
+Status: Draft | Phase: 2 | Target: Multi-Agent Concurrency
+
+1. Challenge
+The Gemini CLI stores all session history and configuration in a global user directory (~/.gemini/). If multiple agents run gemini simultaneously under the same user, they will race to write to ~/.gemini/tmp/ and history.db, causing corruption or crashes.
+
+2. Solution: Home Directory Spoofing
+Since Gemini defaults to ~/.gemini, we achieve isolation by spoofing the HOME environment variable for each process.
+
+3. Execution Flow (The Wrapper)
+A. Initialization (Hydration)
+
+Lock: Acquire /storage/sessions/{id}.lock.
+
+Map: Define VIRTUAL_HOME = /dev/shm/{id}.
+
+Hydrate:
+
+Copy /storage/sessions/{id}/.gemini → VIRTUAL_HOME/.gemini.
+
+If new: Copy template/.gemini (containing auth) to VIRTUAL_HOME.
+
+B. Execution
+
+Set Context:
+
+env["HOME"] = VIRTUAL_HOME (Forces Gemini to read/write DB in RAM).
+
+cwd = /storage/projects/{target_project} (Where the files are).
+
+Run:
+
+Command: gemini -p "User Prompt"
+
+Note: No --resume flag is needed. Gemini will see the hydrated DB in RAM and implicitly resume the session found there.
+
+C. Finalization (Dehydration)
+
+Persist: Copy VIRTUAL_HOME/.gemini/tmp and history.db back to /storage/sessions/{id}/.
+
+Cleanup: Delete VIRTUAL_HOME.
+
+Unlock: Release {id}.lock.
+
+4. Directory Structure
+Plaintext
+/storage/sessions/gemini_884/
+└── .gemini/
+    ├── settings.json       # Auth & Config
+    ├── history.db          # Conversation Rows
+    └── tmp/                # Session Checkpoints
+Requirement Doc 2: Claude CLI Implementation
+Status: Draft | Phase: 2 | Target: Multi-Agent Concurrency
+
+1. Challenge
+Claude CLI uses a state.json file to manage history and context. Concurrent writes to this file cause locking errors. Additionally, Claude binds context to the current directory, which conflicts with our need to separate "Memory" from "Project Files."
+
+2. Solution: Config Sharding
+We utilize the CLAUDE_CONFIG_DIR environment variable to strictly separate the agent's "Brain" (RAM) from its "Hands" (Project Directory).
+
+3. Execution Flow (The Wrapper)
+A. Initialization (Hydration)
+
+Lock: Acquire /storage/sessions/{id}.lock.
+
+Map: Define RAM_CONFIG = /dev/shm/{id}.
+
+Hydrate:
+
+Copy /storage/sessions/{id}/ → RAM_CONFIG.
+
+Context Injection (Optional): Inject "Last 100 Lines" summary into RAM_CONFIG/state.json if recovering from compaction.
+
+B. Execution
+
+Set Context:
+
+env["CLAUDE_CONFIG_DIR"] = RAM_CONFIG (The Brain).
+
+cwd = /storage/projects/{target_project} (The Hands).
+
+Run:
+
+Command: claude -p "User Prompt"
+
+Note: Claude will look in RAM_CONFIG for session history but execute file operations in cwd.
+
+C. Finalization (Dehydration)
+
+Persist: Copy RAM_CONFIG back to /storage/sessions/{id}/.
+
+Cleanup: Delete RAM_CONFIG.
+
+Unlock: Release {id}.lock.
+
+4. Directory Structure
+Plaintext
+/storage/sessions/claude_992/
+├── claude.json             # Auth tokens
+├── state.json              # Active conversation state
+└── history/                # Archived session logs
+Summary of Differences
+Feature	Gemini Implementation	Claude Implementation
+Isolation Method	HOME=/dev/shm/{id}	CLAUDE_CONFIG_DIR=/dev/shm/{id}
+Session Identification	Implicit (Single DB in spoofed Home)	Implicit (Single State in Config Dir)
+Project Context	Via CWD flag	Via CWD flag
+Persistence Target	~/.gemini folder	Configuration Folder Root
+Next Step
+Would you like me to generate the Python Wrapper Code that implements this "Phase 2" logic for both CLIs in a single AgentCLIManager class?
+
+yes please
+
+Here is the complete, drop-in Python implementation for the Phase 2 Architecture.
+
+This AgentCLIManager class handles the entire lifecycle: Locking, Hydrating (HDD→RAM), Executing, and Dehydrating (RAM→HDD) for both Gemini and Claude.
+
+Prerequisites
+You will need the filelock library for safe synchronization.
+
+Bash
+pip install filelock
+The Python Wrapper (agent_cli_manager.py)
+Python
+import os
+import shutil
+import subprocess
+import uuid
+import logging
+from enum import Enum
+from filelock import FileLock, Timeout
+
+# Configure Logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger("CLI_Manager")
+
+class ToolType(Enum):
+    GEMINI = "gemini"
+    CLAUDE = "claude"
+
+class AgentCLIManager:
+    def __init__(self, storage_root="/storage"):
+        """
+        Initializes the manager with base paths.
+        :param storage_root: Root directory for permanent storage (The Vault).
+        """
+        self.vault_root = os.path.join(storage_root, "sessions")
+        self.template_root = os.path.join(storage_root, "templates")
+        self.ram_root = "/dev/shm/agent_execution"  # RAM Disk location
+        
+        # Ensure directories exist
+        os.makedirs(self.vault_root, exist_ok=True)
+        os.makedirs(self.template_root, exist_ok=True)
+        os.makedirs(self.ram_root, exist_ok=True)
+
+    def run_tool(self, tool_type: ToolType, session_id: str, project_path: str, prompt: str):
+        """
+        Executes a CLI tool in an isolated, synchronized environment.
+        
+        :param tool_type: ToolType.GEMINI or ToolType.CLAUDE
+        :param session_id: Unique ID for the conversation (e.g., "ticket_884")
+        :param project_path: The physical path where files live (CWD)
+        :param prompt: The instruction to send to the agent
+        """
+        
+        # 1. Define Deterministic Paths
+        vault_path = os.path.join(self.vault_root, f"{tool_type.value}_{session_id}")
+        lock_path = os.path.join(self.vault_root, f"{tool_type.value}_{session_id}.lock")
+        
+        # Unique RAM path per RUN to absolutely prevent collisions if lock fails
+        # (Though lock shouldn't fail, this is double-safety)
+        run_uuid = str(uuid.uuid4())[:8]
+        ram_path = os.path.join(self.ram_root, f"{tool_type.value}_{session_id}_{run_uuid}")
+
+        # 2. Acquire Lock (Wait up to 60s)
+        lock = FileLock(lock_path, timeout=60)
+        
+        try:
+            with lock:
+                logger.info(f"[{session_id}] Lock acquired. Preparing workbench...")
+                
+                # --- PHASE A: HYDRATION (Vault -> RAM) ---
+                self._hydrate(tool_type, vault_path, ram_path)
+
+                # --- PHASE B: EXECUTION (The Run) ---
+                logger.info(f"[{session_id}] Executing {tool_type.value}...")
+                output = self._execute_subprocess(tool_type, ram_path, project_path, prompt)
+
+                # --- PHASE C: DEHYDRATION (RAM -> Vault) ---
+                # Only save if execution was successful (output is valid)
+                logger.info(f"[{session_id}] Success. Saving state to Vault...")
+                self._dehydrate(vault_path, ram_path)
+                
+                return output
+
+        except Timeout:
+            logger.error(f"[{session_id}] Could not acquire lock for 60s. System busy.")
+            raise RuntimeError("Agent System Busy - Lock Timeout")
+            
+        except subprocess.CalledProcessError as e:
+            logger.error(f"[{session_id}] CLI Crashed: {e.stderr}")
+            # CRITICAL: We do NOT dehydrate here. We discard the RAM state 
+            # so the session reverts to the last known good state in the Vault.
+            raise e
+            
+        finally:
+            # --- PHASE D: CLEANUP ---
+            if os.path.exists(ram_path):
+                shutil.rmtree(ram_path)
+                logger.debug(f"[{session_id}] RAM workbench cleaned.")
+
+    def _hydrate(self, tool_type, vault_path, ram_path):
+        """Copies session from HDD Vault to RAM. Creates new if missing."""
+        if os.path.exists(vault_path):
+            shutil.copytree(vault_path, ram_path)
+        else:
+            # Load Template (Contains Auth Keys)
+            template_path = os.path.join(self.template_root, tool_type.value)
+            if not os.path.exists(template_path):
+                raise FileNotFoundError(f"Auth Template not found at {template_path}")
+            shutil.copytree(template_path, ram_path)
+
+    def _dehydrate(self, vault_path, ram_path):
+        """Copies session from RAM back to HDD Vault (Atomic-ish replacement)."""
+        # Remove old vault state
+        if os.path.exists(vault_path):
+            shutil.rmtree(vault_path)
+        # Save new state
+        shutil.copytree(ram_path, vault_path)
+
+    def _execute_subprocess(self, tool_type, ram_path, project_path, prompt):
+        """Runs the specific CLI command with environment isolation."""
+        env = os.environ.copy()
+        cmd = []
+
+        if tool_type == ToolType.GEMINI:
+            # Gemini Isolation: Spoof HOME directory
+            env["HOME"] = ram_path
+            # We assume 'gemini' executable is in the global PATH
+            cmd = ["gemini", "-p", prompt]
+
+        elif tool_type == ToolType.CLAUDE:
+            # Claude Isolation: Point Config Dir to RAM
+            env["CLAUDE_CONFIG_DIR"] = ram_path
+            cmd = ["claude", "-p", prompt]
+
+        # Execute
+        result = subprocess.run(
+            cmd,
+            cwd=project_path,    # <--- The "Hands" (Filesystem Context)
+            env=env,             # <--- The "Brain" (Memory Context)
+            capture_output=True,
+            text=True,
+            check=True           # Raises CalledProcessError on non-zero exit
+        )
+        
+        return result.stdout
+
+# --- usage_example.py ---
+if __name__ == "__main__":
+    manager = AgentCLIManager()
+    
+    # Example: Agent 884 using Claude to check a project
+    try:
+        response = manager.run_tool(
+            tool_type=ToolType.CLAUDE,
+            session_id="agent_884",
+            project_path="/storage/projects/web-app",
+            prompt="Check the package.json and list the dependencies."
+        )
+        print("Agent Response:\n", response)
+        
+    except Exception as e:
+        print(f"Agent failed: {e}")
+How to Deploy This
+Create Your Templates (One Time Setup) You need to create the "Base Images" for your agents that contain your API keys.
+
+Bash
+# 1. Create Template Folder
+mkdir -p /storage/templates/claude
+mkdir -p /storage/templates/gemini
+
+# 2. Login once to generate the auth files, then copy them here
+# (For Claude)
+cp ~/.config/claude/claude.json /storage/templates/claude/
+# (For Gemini)
+cp -r ~/.gemini/* /storage/templates/gemini/
+Run the Manager
+
+The AgentCLIManager will now auto-clone these templates for every new session_id.
+
+It will automatically handle the copy-to-RAM and copy-back-to-HDD.
+
+It will prevent collisions using the file lock.
+
+This gives you a robust, crash-resistant, multi-agent foundation using the CLIs.

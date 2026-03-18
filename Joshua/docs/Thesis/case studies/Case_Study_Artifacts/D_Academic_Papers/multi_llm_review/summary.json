@@ -1,0 +1,64 @@
+{
+  "correlation_id": "72d42268",
+  "timestamp": "20251018_213435",
+  "prompt": "<redacted - 2293 chars>",
+  "prompt_length": 2293,
+  "files": [
+    "/mnt/irina_storage/files/temp/academic_review_round3_package.md"
+  ],
+  "package_metadata": {
+    "num_files": 1,
+    "total_size": 152270,
+    "total_lines": 2092,
+    "text_files": 1,
+    "binary_files": 0
+  },
+  "models": [
+    "gemini-2.5-pro",
+    "gpt-5",
+    "grok-4-0709",
+    "deepseek-ai/DeepSeek-R1"
+  ],
+  "results": [
+    {
+      "model": "gemini-2.5-pro",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/joshua_papers_v1.3_academic_review/20251018_213435_72d42268/gemini-2.5-pro.md",
+      "duration": 49.3,
+      "tokens": {
+        "prompt": 28906,
+        "completion": 2565
+      }
+    },
+    {
+      "model": "gpt-5",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/joshua_papers_v1.3_academic_review/20251018_213435_72d42268/gpt-5.md",
+      "duration": 165.24,
+      "tokens": {
+        "prompt": 28880,
+        "completion": 10198
+      }
+    },
+    {
+      "model": "grok-4-0709",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/joshua_papers_v1.3_academic_review/20251018_213435_72d42268/grok-4-0709.md",
+      "duration": 59.81,
+      "tokens": {
+        "prompt": 28906,
+        "completion": 1686
+      }
+    },
+    {
+      "model": "deepseek-ai/DeepSeek-R1",
+      "status": "success",
+      "output_file": "/mnt/irina_storage/files/temp/joshua_papers_v1.3_academic_review/20251018_213435_72d42268/deepseek-ai_DeepSeek-R1.md",
+      "duration": 75.01,
+      "tokens": {
+        "prompt": 29100,
+        "completion": 4145
+      }
+    }
+  ]
+}
