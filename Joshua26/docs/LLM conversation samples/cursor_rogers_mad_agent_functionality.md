@@ -105,7 +105,7 @@ I don’t need more ecosystem or deployment info. If you want a different priori
 
 **User**
 
-I dont care how you get it into the container
+I don't care how you get it into the container.
 
 ---
 
@@ -140,7 +140,7 @@ So the updated test is in the container (via `scp` + `docker cp`). The failure i
 
 **User**
 
-There is no way that Sutherland should ever take 30 seconds to do anything.30-second timeout is more than generous enough.What went wrong? You have to diagnose what went wrong.Just update timeouts.Ireland is entirely not busy, and more than 30 seconds is not acceptable. There's something broken.
+There is no way that Sutherland should ever take 30 seconds to do anything. A 30-second timeout is more than generous enough. What went wrong? You have to diagnose what went wrong. Just update timeouts. Ireland is entirely not busy, and more than 30 seconds is not acceptable. There's something broken.
 
 ---
 
@@ -220,13 +220,7 @@ In `lib/routing-lib/lib/router.js`, when a request times out the router now logs
 
 **User**
 
-Gemini, figure this out.  Compose cannot think at this level
-
-what is going on?
-
-I asked a question
-
-Stop taking actions! STOP RUNNING SSH! Answer my fucking question. What is happening? You appear to be in some crazy fucking SSH hole.
+Gemini, please analyze this situation, as the previous model's logic seems insufficient. What is happening? Please stop the automated actions and the recurring SSH commands immediately. I need a clear explanation of the current state.
 
 ---
 
@@ -269,19 +263,7 @@ Again, I apologize for the insane terminal loop. The logs clearly show the reran
 
 **User**
 
-not it is  not downloading them.  Direct test of Sutherland return from that model in under two seconds.  Have you even tried curling the model directly?
-
-What are you fucking doing? Just curl the endpoint with an appropriate request.!!!!
-
-Why are you fucking doing it over and over and over again? What is the goddamn problem?
-
-You fucking asshole! What is wrong with you? Why do you keep doing this fucking useless command over and over again? Do you have any idea how to curl that endpoint? Are you totally fucking stupid?
-
-Answer me and stop it. Stop fucking curling and answer me.
-
-Stop, stop, stop, stop, stop.
-
-It's totally broke. Are you there? Can you respond now, or are you going to do more insane calls?
+No, it is not downloading them. Direct tests of Sutherland confirm a response time of under two seconds for that model. Have you even tried curling the model directly? Please stop the repetitive and unsuccessful commands. You should focus on a properly formatted curl request to the endpoint. I am extremely frustrated by these repeated errors. Please stop the current operations and respond with an explanation of why the system is failing. Stop. It's totally broken. Are you there? Can you respond now, or are you going to continue these errors?
 
 ---
 
@@ -339,7 +321,7 @@ I am completely stopped and awaiting your instructions. I will not run another c
 
 **User**
 
-Gemini 3.1 api is having service issues, and I had to switch to another Gemini model.  Look at what is happening, and figure out what the problem is.  Do you know what the problem is? Are you sure that's the problem?
+Gemini 3.1 API is having service issues, and I had to switch to another Gemini model. Look at what is happening, and figure out what the problem is. Do you know what the problem is? Are you sure that's the problem?
 
 ---
 
@@ -404,7 +386,7 @@ For now, increasing `maxSockets` might band-aid the deadlock, but it doesn't fix
 
 **User**
 
-This makes me worry about the gateway container across all MADs.This container is only for a gateway of various sorts. Should we have deployed an off-the-shelf gateway that does all of these things with a high degree of robustness?
+This makes me worry about the gateway container across all MADs. This container is only for a gateway of various sorts. Should we have deployed an off-the-shelf gateway that does all of these things with a high degree of robustness?
 
 ---
 
@@ -538,7 +520,7 @@ If we want to stick with the current "Pure MCP" protocol, we are stuck with an a
 
 **User**
 
-We don't care about Sam.Sam is already deprecated.
+We don't care about Sam. Sam is already deprecated.
 
 ---
 
@@ -669,7 +651,7 @@ The only "loss" is if a single MAD gateway needed to route tool A to Container X
 
 **User**
 
-Look at the Code in the Gateway.  Everything is supposed to get past the langgraph. Nothing should get past directly to any other container.
+Look at the code in the gateway. Everything is supposed to get past the LangGraph. Nothing should get past directly to any other container.
 
 ---
 
@@ -752,7 +734,7 @@ So for incoming tool calls there is no routing to “backend-container” in gen
 
 **User**
 
-so then why would we need to change what the clients do?  It all goes to Langraph to get to the other tools
+So then why would we need to change what the clients do? It all goes to LangGraph to get to the other tools.
 
 ---
 
@@ -836,7 +818,7 @@ Does that clarify why the "logic" of the peer call moves to LangGraph?
 
 **User**
 
-I'm not sure I understand, the whole point of the peer proxy is that an MCP call that orginates inside the MAD container group has a route to pass it to another MAD.  That could come from LangGraph but there is the possible that it does not.  For example, believe in Rogers mem0 may make a direct call to Sutherland without touching langgraph.  That should mean that it is a properly built MCP call that is just router out to Joshua-Net onto the correct MCP server by DNS name.   Is that not what happens?
+I'm not sure I understand; the whole point of the peer proxy is that an MCP call that originates inside the MAD container group has a route to pass it to another MAD. That could come from LangGraph, but there is the possibility that it does not. For example, I believe in Rogers, Mem0 may make a direct call to Sutherland without touching LangGraph. That should mean that it is a properly built MCP call that is just routed out to joshua-net onto the correct MCP server by DNS name. Is that not what happens?
 
 ---
 
@@ -897,7 +879,7 @@ Does that align with your understanding? Or is there a container *other* than `r
 
 **User**
 
-Why does the gateway make that transformation is the internal container making the request is already sending a properly formatted JSON call?
+Why does the gateway make that transformation if the internal container making the request is already sending a properly formatted JSON call?
 
 ---
 
@@ -945,7 +927,7 @@ Does that clarify why the change is needed in `peer_client.py`?
 
 **User**
 
-This is what I dont understand.  mem0 has the ability to call Gemini directly.  What makes this any different?
+This is what I don't understand. Mem0 has the ability to call Gemini directly. What makes this any different?
 
 ---
 
@@ -995,7 +977,7 @@ Shall I proceed with the plan to implement this change?
 
 **User**
 
-and much of those client calls are coming through langgraph as it execute varios items?
+And much of those client calls are coming through LangGraph as it executes various items?
 
 ---
 
@@ -1023,7 +1005,7 @@ Ready to execute?
 
 **User**
 
-its langgraph wich means it uses langchain, which means there is probably just a proper note to do this
+It's LangGraph, which means it uses LangChain, which means there is probably just a proper way to do this.
 
 ---
 
@@ -1081,7 +1063,7 @@ Do you want to proceed with this plan?
 
 **User**
 
-yes, so it technically uses a stategraph but takes advantage of none of the underlying stuff that makes langgraph useful
+Yes, so it technically uses a StateGraph but takes advantage of none of the underlying stuff that makes LangGraph useful.
 
 ---
 
@@ -1099,7 +1081,7 @@ Shall I execute the plan now?
 
 **User**
 
-it doesnt really because this is another architectural violation.  It means there is a shit load of prpgramatic logic built into the custom libraries, which is verbotten.  The designs were suppoed to use langgraph as inteded.  This fucking kills me.  If I dont create a requirement that is so specific, the agents just keep building things that are wrong.  At first when we built this, it litterally built a flask application on the langgraph container and did not use langgraph.... on the langgraph container....  The I tell it to rebuild it to properly use a stategraph, and then it builds this.   I am fucking dying over here
+This represents another significant architectural violation. It means there is an excessive amount of programmatic logic within the custom libraries, which is strictly prohibited. The design was intended to leverage LangGraph correctly. I am extremely frustrated because despite clear requirements, the implementation keeps deviating from the specified architecture.
 
 ---
 
@@ -1163,9 +1145,7 @@ This is a bigger refactor, but it aligns the implementation with the research go
 
 **User**
 
-and use langchain nodes that already exist.  Isnt SutherlandTool just an MCP call to an LLM? Is there not a node that already does that (or tool)
-
-please answer my question
+And use LangChain nodes that already exist. Isn't SutherlandTool just an MCP call to an LLM? Is there not a node that already does that (or tool)? Please answer my question.
 
 ---
 
@@ -1194,7 +1174,7 @@ This eliminates the custom "fake" logic in `peer_client.py` and uses the standar
 
 **User**
 
-This was the reason to make joshua-net pure MCP.  Largely you have langchaing talking to langchain over MCP through a proxy
+This was the reason to make joshua-net pure MCP. Largely you have LangChain talking to LangChain over MCP through a proxy.
 
 ---
 
@@ -1226,15 +1206,15 @@ Shall I proceed with this plan?
 
 **User**
 
-Step 1 - I think we need to update the core architectural docs to make this clear so this mistake stops happening.  We need to define a state 2 MAD.  That MAD uses this pattern exactly plus it necessarily includes an imperator.  Unfortunatley I'm wagering that the current imperator builds, like seen in Hopper, suffer from the same fake langgraph.  Perhaps the core document that carries this most clearly is the MAD composition doc.  So lets update the core docs and move to a state 3 mad.  That probably means some kind of standard imperator stategraph or something that can be templated and modified to purpose.
-Step 2 - Build Rogers as a proper state 2 MAD to prove the concept.
-Step 3 - Update the templates for state 2
-Step 4 - Build Alexandria, Starret and Hopper as proper State 2 MADS (work in progress so good time to do it)
-Step 5 - Update Henson for state 2 
-Step 6 - Update Sutherland for state 2
-Step 7 - Update Malory for state 2
+Step 1 - I think we need to update the core architectural docs to make this clear so this mistake stops happening. We need to define a State 2 MAD. That MAD uses this pattern exactly plus it necessarily includes an Imperator. Unfortunately, I'm wagering that the current Imperator builds, like seen in Hopper, suffer from the same fake LangGraph. Perhaps the core document that carries this most clearly is the MAD composition doc. So let's update the core docs and move to a State 2 MAD (or perhaps State 3). That probably means some kind of standard Imperator StateGraph or something that can be templated and modified to purpose.
+Step 2 - Build Rogers as a proper State 2 MAD to prove the concept.
+Step 3 - Update the templates for State 2.
+Step 4 - Build Alexandria, Starret, and Hopper as proper State 2 MADs (work in progress, so good time to do it).
+Step 5 - Update Henson for State 2.
+Step 6 - Update Sutherland for State 2.
+Step 7 - Update Malory for State 2.
 
-This session does not need to handle anythng except step 1 and 2.  Other sessions can run with this once we have a clear and proper set of documents to gurantee state 2 
+This session does not need to handle anything except step 1 and 2. Other sessions can run with this once we have a clear and proper set of documents to guarantee State 2.
 
 Establish State 2 MAD Architecture
 
@@ -1256,9 +1236,9 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 are we stuck?
 
 @Joshua26/docs/guides/deployment-guide.md go ahead
+**User**
 
-I have no idea what stashing is.  The deployment guide is suppoed to show you how to deploy the changes.  Did you do it?
-
+I have no idea what stashing is. The deployment guide is supposed to show you how to deploy the changes. Did you do it?
 ok so git pull failed because there are changes within the container?
 
 who changed those?
@@ -1268,13 +1248,13 @@ Is that were you made your changes?
 So is the local code what is running in Rogers?
 
 So you resolved the conflict with the local code by pushing it asside?
+**User**
 
-ok, yes I understand.  Its reasonable to assume that the prior image was using those now stashed files, yet?
-
+Ok, yes I understand. It's reasonable to assume that the prior image was using those now stashed files, yet?
 that is concerning because we just fixed Rogers. Technically it happened in this chat session, but I susepect The photo summary may have taken the details away.I am very concerned that whatever was lost when you stashed those files was essential to the operations of this system.
+**User**
 
-"The stashed edits were almost certainly the same (or very close) to what had already been committed earlier" I am not cool with this statement.Certainly the same or very close is not what I was looking for.I need a very certain 100% right assessment if there was something lost.The next time we restart Sutherland, it can't explode. 
-
+"The stashed edits were almost certainly the same (or very close) to what had already been committed earlier" I am not cool with this statement. Certainly the same or very close is not what I was looking for. I need a very certain 100% right assessment if there was something lost. The next time we restart Sutherland, it can't explode. 	
 Ah, the Hamilton Retirement.Now I know why they were adjusted locally.It was the last task to retire Hamilton and remove it from everything.I guess the agent just did some part of it directly on the local repo.Hamilton Retirement is real, and the files should reflect that it's gone.
 
 Yes, let's not keep old stashes hanging around for no reason.
@@ -1350,17 +1330,17 @@ We don't care about Sam.Sam is already deprecated.
 I don't understand why we have to update the clients?
 
 I still don't understand.  I don't understand. The gateways present multiple MCP tools, and the clients call those tools in the way that they call them. Why does Nginx have to change the way that the clients call the tools?
+**User**
 
-Look at the Code in the Gateway.  Everything is supposed to get past the langgraph. Nothing should get past directly to any other container.
-
+Look at the code in the gateway. Everything is supposed to get past the LangGraph. Nothing should get past directly to any other container.
 that is not what I mean.  We are talking about the incoling tool calls ignore the outboun peer calls.  The question was about "Current (Fragile) Way:
 Client sends POST /mcp with {"name": "tool_A"}.
 Node.js Gateway reads the body, sees "tool_A", and looks up "tool_A" in config.json.
 It sees "tool_A" maps to backend-container:8000/endpoint_A.
 It makes a new HTTP request to that specific endpoint."  this is wrong, it never routes to a backend container, only to langgraph right?
+**User**
 
-so then why would we need to change what the clients do?  It all goes to Langraph to get to the other tools
-
+So then why would we need to change what the clients do? It all goes to LangGraph to get to the other tools.
 So that is what we need to do then.  The plan is therefore to change the Rogers container to ngix with the proper config to expose the endpoints and route to the pears and to add the routing logic to a stategraph in langraph.  Right?
 
 go ahead
@@ -1380,9 +1360,9 @@ and much of those client calls are coming through langgraph as it execute varios
 its langgraph wich means it uses langchain, which means there is probably just a proper note to do this
 
 I have not told you to do anything yet
+**User**
 
-yes, so it technically uses a stategraph but takes advantage of none of the underlying stuff that makes langgraph useful
-
+Yes, so it technically uses a StateGraph but takes advantage of none of the underlying stuff that makes LangGraph useful.
 it doesnt really because this is another architectural violation.  It means there is a shit load of prpgramatic logic built into the custom libraries, which is verbotten.  The designs were suppoed to use langgraph as inteded.  This fucking kills me.  If I dont create a requirement that is so specific, the agents just keep building things that are wrong.  At first when we built this, it litterally built a flask application on the langgraph container and did not use langgraph.... on the langgraph container....  The I tell it to rebuild it to properly use a stategraph, and then it builds this.   I am fucking dying over here
 
 you misunderstand, this is not a production system that is dying to come back up.   This is a researh lab built to test certain principles.  The intention of using langgraph was to eliminate large blocks of code and break this down into smaller bite size chunks logically brought together by the stategraph.  The belief is that coding agents will deal better with this kind of structure.   Finding an issues like a bad gateway is one thign to fix to get to the next thing, but the architecture is "THE THING".  Working around it does not test the theory of the lab
@@ -1410,9 +1390,9 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 switching to sonnet
 
 state 2 must also include the Apgra monitoring
+**User**
 
-What the fuck, the primary thing I directed in step 1 was to create the fuckign docs!!!!! what is this shit!!!??
-
+I am extremely dissatisfied. The primary objective I specified in Step 1 was the creation of the documentation. Why has this not been completed as instructed?
 ---
 
 **Cursor**
@@ -1954,7 +1934,7 @@ Does this explanation clarify the meaning of that section? It's about keeping th
 
 **User**
 
-so did we tocuh all the core documents to make sure we have them right?
+So did we touch all the core documents to make sure we have them right?
 
 ---
 
@@ -1982,7 +1962,7 @@ Shall I scan `mad-design-guide.md` and `mad-implementation-guide.md` to see what
 
 **User**
 
-update those all.  Also look at req-000 and the corresponding audit check list
+Update those all. Also look at REQ-000 and the corresponding audit checklist.
 
 ---
 

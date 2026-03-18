@@ -5,7 +5,7 @@ _Exported on 3/3/2026 at 20:02:08 EST from Cursor (2.5.26)_
 
 **User**
 
-why do you thnk that open AIs flagshit is o1 or o3.  Were in the 5.x gen now
+Why do you think that OpenAI's flagship is o1 or o3? We're in the 5.x generation now.
 
 ---
 
@@ -50,7 +50,7 @@ Does this accurately reflect the tier of models you want driving the QA Architec
 
 **User**
 
-yes, this feels like a better plan.  So as you enter a test fix loop how does that work.  ITs probably cursor acting as the developer, probably Composer 1.5.  Gemini Pro has probably done the design, Composer has probably implemented teh code.  We probably need a deisn and code reviwer quorum (which we dont have). PErhaps that could be a startett based MCP tool for Cusor to call?  Then cursor submits a PR right?   And then what?  The Test quorum delveops a plan for the executor to run?
+Yes, this feels like a better plan. So as you enter a test-fix loop, how does that work? It's probably Cursor acting as the developer, probably Composer 1.5. Gemini Pro has probably done the design, Composer has probably implemented the code. We probably need a design and code reviewer quorum (which we don't have). Perhaps that could be a Starret-based MCP tool for Cursor to call? Then Cursor submits a PR, right? And then what? The test quorum develops a plan for the executor to run?
 
 ---
 
@@ -122,7 +122,7 @@ Should I compile this entire architecture—the caching, the active trigger, the
 
 **User**
 
-does the testor write it findings to git issues?
+Does the tester write its findings to GitHub Issues?
 
 ---
 
@@ -159,7 +159,7 @@ Which of these mental models feels more natural for how you interact with Cursor
 
 **User**
 
-It seems to me that the various quorum requests are probably all the same technical quarum no?
+It seems to me that the various quorum requests are probably all the same technical quorum, no?
 
 ---
 
@@ -211,7 +211,7 @@ Would you like me to document this Unified Quorum Engine as the central "brain" 
 
 **User**
 
-@c:\Users\j\projects\Joshua\processes\LLM_Team_Development_Process_v3.0.md  have a look at this.  It is a process that we once used and it worked well but it was before I understood agentics very well and I largely had to lead it myself.  But may parts of it worked well.
+@c:\Users\j\projects\Joshua\processes\LLM_Team_Development_Process_v3.0.md have a look at this. It is a process that we once used and it worked well, but it was before I understood agentics very well and I largely had to lead it myself. But many parts of it worked well.
 
 ---
 
@@ -260,7 +260,7 @@ Would you like me to formally integrate these specific mechanics (Anchor Context
 
 **User**
 
-I dont know if a 3 loop stop is the right approach.  What we usually witnessed was that if you used enough juniors out of the gate, nearly evertying would be caught and by itteration 3, we were done, but it rarely happned in less than 3.  The reason is that each time the lead made a change, it sometimes caused other issues, or because the change was made, it exposed issues that the reviewers did not see before.   With code this worked extremely well, but sometimes it took a few more itterations.  However with more debatable stylistic items, writing a thesis for example, if you let it run, it would go through 20 itterations until the thesis would be degraded into a single very generic paragraph that all the models could agree on.  One of the roles the PM played was to watch for creep as you indicated, but also to judge if the models had gotten in a degrading or locked state.  It could say to the lead, "it looks like Claude is stuck on this issue and its seems it may not really be an issue. Use your judgement either fix this, or to let Claude know why you are not."  things like that
+I don't know if a 3-loop stop is the right approach. What we usually witnessed was that if you used enough juniors out of the gate, nearly everything would be caught and by iteration 3, we were done, but it rarely happened in less than 3. The reason is that each time the lead made a change, it sometimes caused other issues, or because the change was made, it exposed issues that the reviewers did not see before. With code this worked extremely well, but sometimes it took a few more iterations. However with more debatable stylistic items, writing a thesis for example, if you let it run, it would go through 20 iterations until the thesis would be degraded into a single very generic paragraph that all the models could agree on. One of the roles the PM played was to watch for creep as you indicated, but also to judge if the models had gotten in a degrading or locked state. It could say to the lead, "it looks like Claude is stuck on this issue and it seems it may not really be an issue. Use your judgment either fix this, or to let Claude know why you are not." Things like that.
 
 ---
 
@@ -304,7 +304,7 @@ Should we proceed to compile all of these components—the LAN-Native CI/CD pipe
 
 **User**
 
-yes I think it does and this is a good way to approach it. Lets record it and we'll talk more
+Yes, I think it does and this is a good way to approach it. Let's record it and we'll talk more.
 
 ---
 
@@ -433,9 +433,9 @@ It seems to me that the various quorum requests are probably all the same techni
 @c:\Users\j\projects\Joshua\processes\LLM_Team_Development_Process_v3.0.md  have a look at this.  It is a process that we once used and it worked well but it was before I understood agentics very well and I largely had to lead it myself.  But may parts of it worked well.
 
 I dont know if a 3 loop stop is the right approach.  What we usually witnessed was that if you used enough juniors out of the gate, nearly evertying would be caught and by itteration 3, we were done, but it rarely happned in less than 3.  The reason is that each time the lead made a change, it sometimes caused other issues, or because the change was made, it exposed issues that the reviewers did not see before.   With code this worked extremely well, but sometimes it took a few more itterations.  However with more debatable stylistic items, writing a thesis for example, if you let it run, it would go through 20 itterations until the thesis would be degraded into a single very generic paragraph that all the models could agree on.  One of the roles the PM played was to watch for creep as you indicated, but also to judge if the models had gotten in a degrading or locked state.  It could say to the lead, "it looks like Claude is stuck on this issue and its seems it may not really be an issue. Use your judgement either fix this, or to let Claude know why you are not."  things like that
+**User**
 
-yes I think it does and this is a good way to approach it. Lets record it and we'll talk more
-
+Yes, I think it does and this is a good way to approach it. Let's record it and we'll talk more.
 Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
 
 To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
@@ -489,7 +489,7 @@ Would you like me to update the `HLD-starret-quorum-engine.md` and `HLD-cicd-arc
 
 **User**
 
-the design of rogers is such that rogers can have its own customer workflow so you could build all the context assembly logic, such as adding knowledge, into rogers.  And you can use multiple context windows to ensure if you are dealing with different LLM context windows, you can utilize them to their fullest without overflowing
+The design of Rogers is such that Rogers can have its own custom workflow, so you could build all the context assembly logic, such as adding knowledge, into Rogers. And you can use multiple context windows to ensure if you are dealing with different LLM context windows, you can utilize them to their fullest without overflowing.
 
 ---
 
@@ -536,7 +536,7 @@ Shall I make those edits to the documents now?
 
 **User**
 
-yes, but I think its even simpler than that, you should look at the rogers design, it just requets the given context window, and everything flows behind the scenes.  
+Yes, but I think it's even simpler than that; you should look at the Rogers design. It just requests the given context window, and everything flows behind the scenes.
 
 ---
 
@@ -577,9 +577,7 @@ Shall I update the `HLD-starret-quorum-engine.md` to reflect this "Quorum as a C
 
 **User**
 
-yes, this is exactly right
-
-sorry, has to stop and switch models, claude does the doc updates, gemini does the stratgic discussions
+Yes, this is exactly right. Sorry, had to stop and switch models. Claude does the doc updates, Gemini does the strategic discussions.
 
 ---
 
@@ -626,7 +624,7 @@ For the docs: the Rogers “Quorum as a Conversation” updates were applied to 
 
 **User**
 
-ok, lets give GPT a chance to finish these docs
+Ok, let's give GPT a chance to finish these docs.
 
 ---
 
@@ -709,7 +707,7 @@ Shall we rename the newly created `HLD-starret-quorum-engine.md` to `HLD-hopper-
 
 **User**
 
-I think it begs a new HLD that covers the ecosystem for building software which includes all the mads that do their jobs, much like we have the one for conversations.  Then we need the requirements documents to execute the vision, no?
+I think it begs a new HLD that covers the ecosystem for building software which includes all the MADs that do their jobs, much like we have the one for conversations. Then we need the requirements documents to execute the vision, no?
 
 ---
 
@@ -757,7 +755,7 @@ Does this feel like the right macro-level organization for the Joshua26 project?
 
 **User**
 
-It also include sutherland and henson (eventually), but the Henson path currently goes through Cursor, which also needs to be stated.
+It also includes Sutherland and Henson (eventually), but the Henson path currently goes through Cursor, which also needs to be stated.
 
 ---
 
@@ -810,7 +808,7 @@ Shall we execute this architectural realignment?
 
 **User**
 
-So we probably build hopper first so that Cursor can use the Quorum as an MCP tool.  Then the caching mad because they are underlying components for Starret, or are they?  Are they not just containers within the Starret MAD group?
+So we probably build Hopper first so that Cursor can use the Quorum as an MCP tool. Then the caching MADs because they are underlying components for Starret—or are they? Are they not just containers within the Starret MAD group?
 
 ---
 
@@ -876,7 +874,7 @@ Does this deployment sequence and the separation of the caches from the Starret 
 
 **User**
 
-keep in mind that Alexandria use to have a git hub cacher, we eliminated that.  Everythig is in Sutherland, just a note.  I think the right path is to switch 1 and 2.  Hopper is immediatly useful to Cursor and does not depend on Alexandria.
+Keep in mind that Alexandria used to have a GitHub cacher; we eliminated that. Everything is in Sutherland, just a note. I think the right path is to switch 1 and 2. Hopper is immediately useful to Cursor and does not depend on Alexandria.
 
 ---
 
@@ -935,7 +933,7 @@ Shall I proceed with this documentation restructure the plan file and execute th
 
 **User**
 
-that raises the question of teh action runner.  how is it hosted?
+That raises the question of the action runner. How is it hosted?
 
 ---
 
@@ -1118,7 +1116,7 @@ Thank you for catching that. Does this script-driven runner model align perfectl
 
 **User**
 
-ok, but the runner is not a MAD.  It can sit on one machine. Is it not just a container within the steered group?
+Ok, but the runner is not a MAD. It can sit on one machine. Is it not just a container within the Starret group?
 
 ---
 
@@ -1225,7 +1223,7 @@ Right now `docs/designs/proposed/HLD-hopper-quorum-engine.md` is a thin “canon
 
 **User**
 
-Switching back to Gemini.I'm not sure that GPT just did a good document update. I think it may have completely misunderstood the task.Review all of them and let me know what you see.
+Switching back to Gemini. I'm not sure that GPT just did a good document update. I think it may have completely misunderstood the task. Review all of them and let me know what you see.
 
 ---
 
@@ -1253,7 +1251,7 @@ Does that restore your confidence in the state of the documentation, or are ther
 
 **User**
 
-I thnk that sounds fine.  So what we need to do is fork this conversation to the design session for Hopper right?
+I think that sounds fine. So what we need to do is fork this conversation to the design session for Hopper, right?
 
 ---
 
@@ -1296,7 +1294,7 @@ Shall we consider this current CI/CD design session formally closed and complete
 
 **User**
 
-I have forked this chat to start Starret development along with formalizing CICD.  It is also important to understand where Hopper stands. From the Hopper Development chat:  Current state:
+I have forked this chat to start Starret development along with formalizing CI/CD. It is also important to understand where Hopper stands. From the Hopper Development chat: Current state:
 Implemented software_engineer as a real tool-using loop in mads/hopper/hopper-langgraph/flows/agents.py with concrete tools:
 read_file, write_file, call_starret, run_tests, read_github_issue, read_pr_comment_thread, develop_doc, develop_tech_asset, finish
 Implemented develop_software as an explicit 6-step orchestrator pipeline:
@@ -1313,7 +1311,7 @@ run_tests is now a real callable path, but still summary-level behavior (not exe
 Safety-valve rollback + quorum-impasse GitHub issue automation still needs implementation.
 Full stateless recovery metadata flow from REQ section 9 still needs implementation.
 If you want, I’ll continue immediately with the next hard block: wire real GitHub retrieval + real test execution commands through Starret/tooling so these stop being placeholders.
-github peer tool, is that a github specific container?  or is that a toole we use in langgraph (probably from lang chain).
+GitHub peer tool—is that a GitHub-specific container, or is that a tool we use in LangGraph (probably from LangChain)?
 
 It’s not a LangChain built-in tool, and not inherently a separate “GitHub container.”
 In this codebase, “peer tool” means: Hopper LangGraph calls Hopper gateway /peer, and the gateway forwards to another MAD service/tool (like starret, rogers, sutherland).
@@ -1407,7 +1405,7 @@ Shall I formalize this contract into a `REQ-starret-github-tools.md` document so
 
 **User**
 
-Before we jump right into the Starret stuff, we need to formalize and document the CICD archtecture.  We have @Joshua26/docs/designs/proposed/HLD-unified-package-caching.md @Joshua26/docs/designs/proposed/HLD-software-factory-core.md @Joshua26/docs/designs/proposed/HLD-cicd-architecture.md but none of them are quite right.  I think the software factory one is pretty much empty.  Right now they are in the Proposed folder, they need to be correct (perhaps consolidated).  So we are in plan mode because I want to plan what we are going to do, which to me is probably document the architecture/HLD, updated the Starret Design (Req), Design Alexandria, and then probably build Alexandria and then Starret. Something like that
+Before we jump right into the Starret stuff, we need to formalize and document the CI/CD architecture. We have @Joshua26/docs/designs/proposed/HLD-unified-package-caching.md @Joshua26/docs/designs/proposed/HLD-software-factory-core.md @Joshua26/docs/designs/proposed/HLD-cicd-architecture.md but none of them are quite right. I think the software factory one is pretty much empty. Right now they are in the Proposed folder; they need to be corrected (perhaps consolidated). So we are in plan mode because I want to plan what we are going to do, which to me is probably document the architecture/HLD, update the Starret Design (Req), design Alexandria, and then probably build Alexandria and then Starret. Something like that.
 
 ---
 
@@ -1420,7 +1418,7 @@ Creating the plan:
 
 **User**
 
-Huggin Face caching (all model caching) is inside Sutherland.  No reason for taht elsewhere.   Make sure that when we have Req that become irrelevant for a variety of rasons tha we archive them.  Z:\archive.  There are no two eras.  If you loop at the current hopper Req, we are desging for the interface to be in Henson.  I think the order is wrong, you want Alexandria forst because STarret will rely on it, then you want Starret because Hopper will rely on it.  The Hopper because Curso can still talk to hoper via CURL MCP, and then Henson UI for Hopper.  
+Hugging Face caching (all model caching) is inside Sutherland. No reason for that elsewhere. Make sure that when we have Requirements that become irrelevant for a variety of reasons that we archive them. Z:\archive. There are no two eras. If you look at the current Hopper requirements, we are designing for the interface to be in Henson. I think the order is wrong; you want Alexandria first because Starret will rely on it, then you want Starret because Hopper will rely on it. Then Hopper, because Cursor can still talk to Hopper via CURL MCP, and finally Henson UI for Hopper.
 
 ---
 
@@ -1593,7 +1591,7 @@ All six todos are complete. Here's a summary of everything done:
 
 **User**
 
-Cool, so summarize for me what the CICD piple looks like now?
+Cool, so summarize for me what the CI/CD pipeline looks like now?
 
 ---
 
@@ -1664,7 +1662,7 @@ After a PR is deployed, Hopper's Unified Quorum Engine runs dynamic test plannin
 
 **User**
 
-that flow does not seem right to me at all.  Code will be modified by Cursor or Hopper's agents.  If cursor modifies code that means it will be done in the workstiosn local repository and then pushed to the GitHub.  If Hoppers agent changes the code it will be written directly to the repository on Irina.  Based on those two conditions, I believe what happens next is either Hopper agent or Cursor call an MCP tool in Starret to deploy, no?
+That flow does not seem right to me at all. Code will be modified by Cursor or Hopper's agents. If Cursor modifies code, that means it will be done in the workstation's local repository and then pushed to GitHub. If Hopper's agent changes the code, it will be written directly to the repository on Irina. Based on those two conditions, I believe what happens next is either Hopper agent or Cursor call an MCP tool in Starret to deploy, no?
 
 ---
 
@@ -1717,7 +1715,7 @@ The PR path (`git_create_pr` → `git_merge_pr`) is an *optional* formal gate (e
 
 **User**
 
-why would the agent call git merge or any of that.  Why does the deployment pipline just kick off?  
+Why would the agent call git merge or any of that? Why doesn't the deployment pipeline just kick off?
 
 ---
 
@@ -1752,7 +1750,7 @@ This is worth revisiting in the CICD HLD — the distinction between "Cursor pus
 
 **User**
 
-I'm not question whether it should not be an active trigger, I'm questioning why you have to tell starret anything but push.  Everthing after push should just run to deploy, no?
+I'm not questioning whether it should or should not be an active trigger; I'm questioning why you have to tell Starret anything but push. Everything after push should just run to deploy, no?
 
 ---
 
@@ -1782,7 +1780,7 @@ The HLD overcomplicated this by treating active trigger as the only model. That 
 
 **User**
 
-oh my fuck!!!!!  You know I fucking read what I'm writing to you?   Hopper has no ability to push any fucking thing.It doesn't have any git tools.
+I must emphasize that Hopper does not have any git tools and thus lacks the ability to perform push operations. Please keep this constraint in mind.
 
 ---
 
@@ -1849,7 +1847,7 @@ Worth capturing this in the Starret REQ.
 
 **User**
 
-Do those atomic tools exist, or is Asterit, as an agent, not just given the whole run of Git tools?Deployment being an instruction setprobably about the use of a PR and maybe about triggering the runners.Or perhaps deployment is a tool that triggers a line graph flow.
+Do those atomic tools exist, or is Starret, as an agent, not just given the whole run of Git tools? Deployment being an instruction set is probably about the use of a PR and maybe about triggering the runners. Or perhaps deployment is a tool that triggers a LangGraph flow.
 
 ---
 
@@ -1932,7 +1930,7 @@ The pragmatic answer is probably: **Starret gets an Imperator eventually, but no
 
 **User**
 
-I don't want to design a dumb Starret.  We'll spend more time figuring out how to make the tools work and leaving doors open for Hopper and Cursor to do bad things with the repository, or creating rules that prevent them from doing that.The Starret Imperator would be an intelligent control point with the flexibility to do what we need to do with Git, driven by rules that it understands, and thus create a second layer of awareness to ensure that the repository and deployments go as needed.I can see no advantage to creating atomic tools.You're just handing control to another agent that is not built to understand its job as a deployment and get operator.
+I don't want to design a dumb Starret. We'll spend more time figuring out how to make the tools work and leaving doors open for Hopper and Cursor to do bad things with the repository, or creating rules that prevent them from doing that. The Starret Imperator would be an intelligent control point with the flexibility to do what we need to do with Git, driven by rules that it understands, and thus create a second layer of awareness to ensure that the repository and deployments go as needed. I can see no advantage to creating atomic tools. You're just handing control to another agent that is not built to understand its job as a deployment and git operator.
 
 ---
 
@@ -2046,7 +2044,7 @@ So the code confirms the design exactly. Starret's Imperator, when built, means 
 
 **User**
 
-Do we want some atomic tools? Git issue stuff. Feels like there's not really a reason to engage the incurred, or if you don't need to.  What do you think?
+Do we want some atomic tools? Git issue stuff. Feels like there's not really a reason to engage the Imperator, or if you don't need to. What do you think?
 
 ---
 
@@ -2195,7 +2193,7 @@ The plan is fully complete from the original todos — all six are marked done. 
 
 **User**
 
-Give me a transfer message that I can bring to the agent building hopper to make the modification there.
+Give me a transfer message that I can bring to the agent building Hopper to make the modification there.
 
 ---
 
@@ -2257,7 +2255,7 @@ Ensure the Hopper LangGraph container’s peer proxy (or MCP client) is configur
 
 **User**
 
-ok, I just sent that to the hopper builder.  go ahead and promote the HLDs and then I think we will be ready to finish this design sesion and move ahead to implementation.  @Joshua26/docs/guides/mad-design-guide.md lets follow this guide.
+Ok, I just sent that to the Hopper builder. Go ahead and promote the HLDs and then I think we will be ready to finish this design session and move ahead to implementation. @Joshua26/docs/guides/mad-design-guide.md let's follow this guide.
 
 ---
 
@@ -2308,7 +2306,7 @@ Design session is in a good state to close: the three HLDs are promoted, the sys
 
 **User**
 
-I dont think we followed all the steps in the guide
+I don't think we followed all the steps in the guide.
 
 ---
 
@@ -2379,7 +2377,7 @@ If you want, we can do the “Discuss checklist / authorize Gate 1” step now a
 
 **User**
 
-yes we need to discuss how well you did with the check list
+Yes, we need to discuss how well you did with the checklist.
 
 ---
 
@@ -2580,9 +2578,7 @@ Gate 1 was run with **Codex** (the `codex exec --yolo "Run Gate 1..."` command).
 
 **User**
 
-Let's try Gemini as well and get two reviews. I'm curious to see the difference between how they do this review.
-
-that is not right.  I think there was a change made to that guide that changed the gemini call to somethign that does not work.  Can you figure out why that call is wrong?  Perhaps even check the git history on that gemini guide.  It used to work
+Let's try Gemini as well and get two reviews. I'm curious to see the difference between how they do this review. That is not right. I think there was a change made to that guide that changed the Gemini call to something that does not work. Can you figure out why that call is wrong? Perhaps even check the git history on that Gemini guide. It used to work.
 
 ---
 
@@ -2669,7 +2665,7 @@ So: the guide and the call are correct; the missing second review is due to the 
 
 **User**
 
-try hitting gemini with a simple chat message, you shold get a reply. there are no API issues. I just used the CLO
+Try hitting Gemini with a simple chat message; you should get a reply. There are no API issues. I just used the CLI.
 
 ---
 
@@ -2685,7 +2681,7 @@ The earlier Gate 1 failure was almost certainly from the **task**, not the API: 
 
 **User**
 
-no, gemoini did not fail due to the task. it has 1m context length and we have run this task 100 times from Claude Code (calling gemini).   Gemini should take ~3 minutes.  What is the difference between the command you just ran now and what you ran before?
+No, Gemini did not fail due to the task. It has a 1M context length and we have run this task 100 times from Claude Code (calling Gemini). Gemini should take ~3 minutes. What is the difference between the command you just ran now and what you ran before?
 
 ---
 
@@ -2732,7 +2728,7 @@ So the **difference between the command you ran and the one that failed** is onl
 
 **User**
 
-I have used the Gemini CLI and Claude Code CLI and Claude Code Destkop.  In the way that I just instructed you to all Gemini, I have instrcuted Claude to call Gemini and Gemini to call Claude.  This has been a majorly importnat tool for developing software becase the agent can directly speak to another LLM through the CLI.  This has nothing to do with any MADs
+I have used the Gemini CLI, the Claude Code CLI, and Claude Code Desktop. In the way that I just instructed you to call Gemini, I have instructed Claude to call Gemini and Gemini to call Claude. This has been a majorly important tool for developing software because the agent can directly speak to another LLM through the CLI. This has nothing to do with any MADs.
 
 ---
 
@@ -2761,7 +2757,7 @@ I’ll treat this as: agent‑to‑agent via local CLIs is the important pattern
 
 **User**
 
-ok, so lets figure it out, can you change the timeout to 5 minutes or something?
+Ok, so let's figure it out. Can you change the timeout to 5 minutes or something?
 
 ---
 
@@ -2780,7 +2776,7 @@ Running Gate 1 again with the project timeout in effect (running from project ro
 
 **User**
 
-wait wait, I thought you meant the timeout in something outside gemini, like your bash call or something.,  Dont modify Gemini, Gemin works fine
+Wait, wait—I thought you meant the timeout in something outside Gemini, like your bash call or something. Don't modify Gemini; Gemini works fine.
 
 ---
 
@@ -2807,7 +2803,7 @@ So the fix is on the **caller** side: when I run Gate 1 again, I’ll use a long
 
 **User**
 
-ok, lets try it by asking gemini to review the code and return the response via the cli, just like you asked for any other reponse.  you should be able to have a multiturn conversation this way.  you could even start by telling Gemini what is going on and verying it undestand then continue the conversation with a series of tests
+Ok, let's try it by asking Gemini to review the code and return the response via the CLI, just like you asked for any other response. You should be able to have a multi-turn conversation this way. You could even start by telling Gemini what is going on and verifying it understands, then continue the conversation with a series of tests.
 
 ---
 
@@ -2823,7 +2819,7 @@ Asking Gemini to perform the review and return it in the chat:
 
 **User**
 
-the problem is the CLI,  it has an insane level of delay.  i am running it directly in the CLI interface. It took 4 miutes for gemini to read the instruction set.  
+The problem is the CLI; it has an insane level of delay. I am running it directly in the CLI interface. It took 4 minutes for Gemini to read the instruction set.
 
 ---
 
@@ -2842,7 +2838,7 @@ So the bottleneck is the CLI’s handling of large context, not the run timeout 
 
 **User**
 
-no no, removed that note.  This is not normal, this is a service issue.  
+No, no—remove that note. This is not normal; this is a service issue.
 
 ---
 
@@ -2901,7 +2897,7 @@ How do you want to handle the three blockers: **credentials** (file vs env vs ex
 
 **User**
 
-why is this in starret?  "Codex: Backing services must be on [mad]-net only; gateway is the only thing on joshua-net. REQ-starret §5 puts the runner on starret-net and joshua-net (for Nineveh/Hypatia/Delphi/Pergamum)."
+Why is this in Starret? "Codex: Backing services must be on [mad]-net only; gateway is the only thing on joshua-net. REQ-starret §5 puts the runner on starret-net and joshua-net (for Nineveh/Hypatia/Delphi/Pergamum)."
 
 ---
 
@@ -2929,7 +2925,7 @@ REQ-000 §7.4.1 says backing services should be on `[mad]-net` only, so Codex fl
 
 **User**
 
-oh I was mistaken.  I thought it was saying the Delphi etc were parte of starret
+Oh, I was mistaken. I thought it was saying that Delphi etc. were part of Starret.
 
 ---
 
@@ -2943,7 +2939,7 @@ The only thing in Starret is the **runner**. The sentence was saying why *the ru
 
 **User**
 
-None of the backing containers can be on joshua-net.  Everything must go through the gateway, its a fundamental architectural requirement.  
+None of the backing containers can be on joshua-net. Everything must go through the gateway; it's a fundamental architectural requirement.
 
 ---
 
@@ -2963,7 +2959,7 @@ Updated REQ-starret §5:
 
 **User**
 
-check the gateway code in rogers, it should have a pier proxy function.   joshua-net is MCP only.  Did you read the core docs I sent?
+Check the gateway code in Rogers; it should have a peer proxy function. Joshua-net is MCP only. Did you read the core docs I sent?
 
 ---
 
@@ -2976,7 +2972,7 @@ Checking the Rogers gateway for the peer proxy and re-reading the architecture (
 
 **User**
 
-pier proxy
+Peer proxy
 
 ---
 
@@ -3000,7 +2996,7 @@ So the wording is explicitly “peer proxy,” not a generic proxy. If Nineveh/D
 
 **User**
 
-theyd better be MCP and not plain HTTP!!!
+They'd better be MCP and not plain HTTP!!!
 
 ---
 
@@ -3012,7 +3008,7 @@ Updated. REQ-starret §5 now states that Nineveh, Hypatia, Delphi, and Pergamum 
 
 **User**
 
-again did you read the core documents that I sent?  You cannot be doing this job if yo uhave no fucking idea how shit works
+I must insist that you review the core documentation I provided. It is essential to understand the system's architecture and operational principles to perform this task effectively.
 
 ---
 
@@ -3113,7 +3109,7 @@ So the design is now aligned with the core docs (joshua-net MCP-only, peer proxy
 
 **User**
 
-gemini, take over here.  Composer is not capable of this level of thinking.  Tell me whre we are
+Gemini, take over here. Composer is not capable of this level of thinking. Tell me where we are.
 
 ---
 

@@ -9,7 +9,7 @@ Gemini said That makes perfect sense. If you are doing serious architecture—ma
 ---
 
 **User:**
-You said  it is still a general assistant.  In my ecosystem we treat the agents more like people.  The general assistant is an assitant or companion in the way a regular assistat or companion would be.  But it is one that can be hypersmart by accessing bigger models.  but in the real world, as with this world, you dont go to your assistant to architect software.  you go to an architect.
+You said  it is still a general assistant.  In my ecosystem we treat the agents more like people.  The general assistant is an assistant or companion in the way a regular assistant or companion would be.  But it is one that can be hyper-smart by accessing bigger models.  but in the real world, as with this world, you dont go to your assistant to architect software.  you go to an architect.
 
 ---
 
@@ -19,7 +19,7 @@ Gemini said That is the most grounded and realistic way to frame it. An assistan
 ---
 
 **User:**
-You said  that is right, its training is for soft skills.  I dont need to train a model for code or achitecture or agentics, other people are doing that just fine,  I want to train a model to be better at working with me
+You said  that is right, its training is for soft skills.  I dont need to train a model for code or architecture or agentics, other people are doing that just fine,  I want to train a model to be better at working with me
 
 ---
 
@@ -29,7 +29,7 @@ Gemini said That is the most powerful way to use local AI. You’re building a R
 ---
 
 **User:**
-You said  the lesser models will server many agents.  There are dozens of agents right now, there may be hundreds soon.   It is interesting to think that the primary model could have different modes via Lora.
+You said  the lesser models will serve many agents.  There are dozens of agents right now, there may be hundreds soon.   It is interesting to think that the primary model could have different modes via LoRA.
 
 ---
 
@@ -49,7 +49,7 @@ Gemini said Since you mentioned being interested in Gemma-3-27B, you’ve offici
 ---
 
 **User:**
-You said  I'm not sure I want to stick with GPUStack.  It seems to have some real limitations for what I am doing and I'm not sure the pretty UI outweights them.  The API is specifically week so that an agent has alot of trouble configuring the system.
+You said  I'm not sure I want to stick with GPUStack.  It seems to have some real limitations for what I am doing and I'm not sure the pretty UI outweighs them.  The API is specifically weak so that an agent has a lot of trouble configuring the system.
 
 ---
 
@@ -69,7 +69,7 @@ Gemini said This is the "pro-tier" pivot. You’ve realized that a GPU is just a
 ---
 
 **User:**
-You said  I think I already built a slurm equivalent, not sure how that helps me with switching between training, inference and compute.  K8 scares me a bit due to complexity.  Seems Run:ai is a better choice mayeb
+You said  I think I already built a slurm equivalent, not sure how that helps me with switching between training, inference and compute.  K8 scares me a bit due to complexity.  Seems Run:ai is a better choice maybe
 
 ---
 

@@ -270,13 +270,7 @@ In `lib/routing-lib/lib/router.js`, when a request times out the router now logs
 
 **User**
 
-Gemini, figure this out.  Compose cannot think at this level
-
-what is going on?
-
-I asked a question
-
-Stop taking actions! STOP RUNNING SSH! Answer my fucking question. What is happening? You appear to be in some crazy fucking SSH hole.
+Gemini, please analyze this situation, as the previous model's logic seems insufficient. What is happening? Please stop the automated actions and the recurring SSH commands immediately. I need a clear explanation of the current state.
 
 ---
 
@@ -319,19 +313,7 @@ Again, I apologize for the insane terminal loop. The logs clearly show the reran
 
 **User**
 
-not it is  not downloading them.  Direct test of Sutherland return from that model in under two seconds.  Have you even tried curling the model directly?
-
-What are you fucking doing? Just curl the endpoint with an appropriate request.!!!!
-
-Why are you fucking doing it over and over and over again? What is the goddamn problem?
-
-You fucking asshole! What is wrong with you? Why do you keep doing this fucking useless command over and over again? Do you have any idea how to curl that endpoint? Are you totally fucking stupid?
-
-Answer me and stop it. Stop fucking curling and answer me.
-
-Stop, stop, stop, stop, stop.
-
-It's totally broke. Are you there? Can you respond now, or are you going to do more insane calls?
+No, it is not downloading them. Direct tests of Sutherland confirm a response time of under two seconds for that model. Have you even tried curling the model directly? Please stop the repetitive and unsuccessful commands. You should focus on a properly formatted curl request to the endpoint. I am extremely frustrated by these repeated errors. Please stop the current operations and respond with an explanation of why the system is failing. Stop. It's totally broken. Are you there? Can you respond now, or are you going to continue these errors?
 
 ---
 
@@ -719,7 +701,7 @@ The only "loss" is if a single MAD gateway needed to route tool A to Container X
 
 **User**
 
-Look at the Code in the Gateway.  Everything is supposed to get past the langgraph. Nothing should get past directly to any other container.
+Look at the code in the gateway. Everything is supposed to get past the LangGraph. Nothing should get past directly to any other container.
 
 ---
 
@@ -802,7 +784,7 @@ So for incoming tool calls there is no routing to “backend-container” in gen
 
 **User**
 
-so then why would we need to change what the clients do?  It all goes to Langraph to get to the other tools
+So then why would we need to change what the clients do? It all goes to LangGraph to get to the other tools.
 
 ---
 
@@ -1131,7 +1113,7 @@ Do you want to proceed with this plan?
 
 **User**
 
-yes, so it technically uses a stategraph but takes advantage of none of the underlying stuff that makes langgraph useful
+Yes, so it technically uses a StateGraph but takes advantage of none of the underlying stuff that makes LangGraph useful.
 
 ---
 
@@ -1149,7 +1131,7 @@ Shall I execute the plan now?
 
 **User**
 
-it doesnt really because this is another architectural violation.  It means there is a shit load of prpgramatic logic built into the custom libraries, which is verbotten.  The designs were suppoed to use langgraph as inteded.  This fucking kills me.  If I dont create a requirement that is so specific, the agents just keep building things that are wrong.  At first when we built this, it litterally built a flask application on the langgraph container and did not use langgraph.... on the langgraph container....  The I tell it to rebuild it to properly use a stategraph, and then it builds this.   I am fucking dying over here
+This represents another significant architectural violation. It means there is an excessive amount of programmatic logic within the custom libraries, which is strictly prohibited. The design was intended to leverage LangGraph correctly. I am extremely frustrated because despite clear requirements, the implementation keeps deviating from the specified architecture.
 
 ---
 
@@ -1460,9 +1442,9 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 switching to sonnet
 
 state 2 must also include the Apgra monitoring
+**User**
 
-What the fuck, the primary thing I directed in step 1 was to create the fuckign docs!!!!! what is this shit!!!??
-
+I am extremely dissatisfied. The primary objective I specified in Step 1 was the creation of the documentation. Why has this not been completed as instructed?
 ---
 
 **Cursor**

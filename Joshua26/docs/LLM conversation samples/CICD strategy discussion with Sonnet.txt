@@ -143,7 +143,7 @@
                                                                                                                                                                                               
 ✻ Sautéed for 30s                                                                                                                                                                             
                                                                                                                                                                                               
-❯ I would not make a firewall block.  Yes they should live on Irina next to Alexandria but on apporpriately name containers Delphi and Pergamum I think.                                      
+❯ I would not make a firewall block.  Yes they should live on Irina next to Alexandria but on appropriately named containers Delphi and Pergamum I think.                                      
                                                                                                                                                                                               
 ● Excellent naming choices - staying with the ancient library theme alongside Alexandria.                                                                                                     
                                                                                                                                                                                               
@@ -224,8 +224,7 @@
                                                                                                                                                                                               
 ✻ Cooked for 1m 19s                                                                                                                                                                           
                                                                                                                                                                                               
-❯ '/mnt/storage/projects/Joshua26/registry.yml'  this is where UIDs are recorded. Alexandria already is deployed. But we do need requirements for Delphi and Pergamum, and then a             
-  planning doc for implimention '/mnt/storage/projects/Joshua26/docs/planning' '/mnt/storage/projects/Joshua26/docs/requirements'                                                             
+❯ '/mnt/storage/projects/Joshua26/registry.yml'  this is where UIDs are recorded. Alexandria already is deployed. But we do need requirements for Delphi and Pergamum, and then a planning doc for implementation '/mnt/storage/projects/Joshua26/docs/planning' '/mnt/storage/projects/Joshua26/docs/requirements'                                                             
                                                                                                                                                                                               
 ● Let me read the registry and look at existing requirements/planning docs for reference.                                                                                                     
                                                                                                                                                                                               
@@ -612,8 +611,7 @@
                                                                                                                                                                                               
 ✻ Cooked for 1m 7s                                                                                                                                                                            
                                                                                                                                                                                               
-❯ next lets talk about CI/CD because I think that will be the natural follow on to the caching model. Here is the conversation that I just had with Gemini: Here is your consolidated         
-  CI/CD Strategy 2.0.                                                                                                                                                                         
+❯ next let's talk about CI/CD because I think that will be the natural follow-on to the caching model. Here is the conversation that I just had with Gemini: Here is your consolidated CI/CD Strategy 2.0.                                                                                                                                                                         
                                                                                                                                                                                               
   This strategy replaces the "Folder Copying" model (ADR-037) with the "Library Proxy" model. It leverages GitHub for code storage but keeps all heavy lifting (builds and packages) on       
   your local network to support your AI Lab environment.                                                                                                                                      
@@ -786,7 +784,7 @@
                                                                                                                                                                                               
 ✻ Churned for 33s                                                                                                                                                                             
                                                                                                                                                                                               
-❯ Joshua26 is a repo.  There will be other repos in projects.  Projects is where we put the repos.  Help me understand the Docker registry part.  Is that were we record the BOMs?            
+❯ Joshua26 is a repo.  There will be other repos in projects.  Projects is where we put the repos.  Help me understand the Docker registry part.  Is that where we record the BOMs?            
                                                                                                                                                                                               
 ● Good question. Let me clarify what a Docker registry is and how BOMs fit in.                                                                                                                
                                                                                                                                                                                               
@@ -895,7 +893,7 @@
                                                                                                                                                                                               
 ✻ Churned for 33s                                                                                                                                                                             
                                                                                                                                                                                               
-❯ I'm still not sure I understand teh advantage of storing built images if we can build quickly because he have caches all the components.                                                    
+❯ I'm still not sure I understand the advantage of storing built images if we can build quickly because we have caches for all the components.                                                    
                                                                                                                                                                                               
 ● That's a fair challenge. Let me think through this honestly.                                                                                                                                
                                                                                                                                                                                               
@@ -1224,9 +1222,7 @@
   ---                                                                                                                                                                                         
   Which of these would you like to address first?                                                                                                                                             
                                                                                                                                                                                               
-❯ 1) I tend to think we want a runner on every server with a docker farm since I have found it hard to get deployment right unless the LLM doing the deployment is not machine local.         
-  They have to operate over SSH which seems to confuse them. But that is the current model and so I'm not clear on how to think about this.  Consider, we are working presently in a          
-  swarm but still use docker compose. I think in order to know the runner situation, we have to think about the deployment sitiations, and wether we should be embracing the swarm            
+❯ 1) I tend to think we want a runner on every server with a docker farm since I have found it hard to get deployment right unless the LLM doing the deployment is not machine local. They have to operate over SSH which seems to confuse them. But that is the current model and so I'm not clear on how to think about this. Consider, we are working presently in a swarm but still use docker compose. I think in order to know the runner situation, we have to think about the deployment situations, and whether we should be embracing the swarm            
                                                                                                                                                                                               
 ● This is the right question to ask first. Let me help you think through this.                                                                                                                
                                                                                                                                                                                               
@@ -1372,8 +1368,7 @@
                                                                                                                                                                                               
 ✻ Worked for 43s                                                                                                                                                                              
                                                                                                                                                                                               
-❯ we have a registry of sorts, but I think a more formal database based registry would help with a lot things, including the service discover and which tools appear in Sam. The current      
-  registry is here: '/mnt/storage/projects/Joshua26/registry.yml'                                                                                                                             
+❯ we have a registry of sorts, but I think a more formal database-backed registry would help with a lot of things, including the service discovery and which tools appear in Sam. The current registry is here: '/mnt/storage/projects/Joshua26/registry.yml'                                                                                                                             
                                                                                                                                                                                               
 ● Now we're getting somewhere interesting. You're pointing at something deeper - the registry.yml is static configuration, but you need dynamic service discovery.                            
                                                                                                                                                                                               
@@ -1536,8 +1531,7 @@
                                                                                                                                                                                               
 ✻ Sautéed for 39s                                                                                                                                                                             
                                                                                                                                                                                               
-❯ lets not get to caught up in the spefcifics of the registry but rather consider the CI/CD descisions that we are looking to make while accepting the idea that a registry, because of       
-  many reasons other than CI/CD. is probably a good idea.  When I think about SWARM it seems to me to be the least complicated solution so long as we have a registry, no?                    
+❯ let's not get too caught up in the specifics of the registry but rather consider the CI/CD decisions that we are looking to make while accepting the idea that a registry, for many reasons other than CI/CD, is probably a good idea. When I think about SWARM it seems to me to be the least complicated solution so long as we have a registry, no?                    
                                                                                                                                                                                               
 ● You're right - I was overcomplicating this. Let me reframe.                                                                                                                                 
                                                                                                                                                                                               
@@ -1682,8 +1676,7 @@
                                                                                                                                                                                               
 ✻ Sautéed for 36s                                                                                                                                                                             
                                                                                                                                                                                               
-❯ yes that makes it clearer, and I think it is correct.  So I believe that means we need to consider the MADs,  Starret need to be upgraded to handle all of the git work. Then we need a     
-  serice registry MAD and a docker image registry MAD.  Right?                                                                                                                                
+❯ yes that makes it clearer, and I think it is correct. So I believe that means we need to consider the MADs, Starret needs to be upgraded to handle all of the git work. Then we need a service registry MAD and a docker image registry MAD. Right?                                                                                                                                
                                                                                                                                                                                               
 ● Exactly right. Three MADs to complete the CI/CD picture:                                                                                                                                    
                                                                                                                                                                                               

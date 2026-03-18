@@ -2069,7 +2069,7 @@ Document · DOCX
 
 Download
 
-I designed the C1 D1 and and C1 D2 facilities for hydrocarbon and ethanol extraction BTW
+You said I designed the C1 D1 and C1 D2 facilities for hydrocarbon and ethanol extraction BTW
 
 Dec 5, 2025
 
@@ -2123,7 +2123,7 @@ Document · DOCX
 
 Download
 
-I also designed the CO2 PPM alerting systems and have programatic experience in modbus
+You said I also designed the CO2 PPM alerting systems and have programmatic experience in Modbus
 
 Dec 5, 2025
 
@@ -2184,7 +2184,7 @@ Document · DOCX
 
 Download
 
-Modbus is not just building automation, it is the insdustry standar protocol for the modular connections between fire control systems
+You said Modbus is not just building automation, it is the industry standard protocol for the modular connections between fire control systems
 
 Dec 5, 2025
 
@@ -2233,7 +2233,7 @@ Document · DOCX
 
 Download
 
-I would not say I have hands on experience in programming fire proection systems, I have experience in programming Modbus, mainly for mechcanical systems, however, through my larger contruction work I understand how it applies to fire systems.
+You said I would not say I have hands-on experience in programming fire protection systems; I have experience in programming Modbus, mainly for mechanical systems; however, through my larger construction work, I understand how it applies to fire systems.
 
 Dec 5, 2025
 
@@ -2283,7 +2283,7 @@ Document · DOCX
 
 Download
 
-again, I need to make the correction that I did not have 900 staff at MArsh McLennan
+You said again, I need to make the correction that I did not have 900 staff at Marsh McLennan
 
 Dec 5, 2025
 
@@ -2677,7 +2677,7 @@ Document · DOCX
 
 Download
 
-I am going to mark this as a top choice and LinkedInt requires a little statement about that.
+You said I am going to mark this as a top choice and LinkedIn requires a little statement about that.
 
 Dec 5, 2025
 
@@ -2775,7 +2775,7 @@ This could be great if you want to pivot to higher ed with top-tier compensation
 
 What are your thoughts on these trade-offs?
 
-These are interesting thigns to consider. I would actually prefer an onsite role, so that is not a problem and chestnut hill is not far. Although I have focused mostly on IT, I have spent a good deal of time in acedmia having two masters and recently spent a good deal of time at MIT and am presently conducting my own acedemic research on my own self built lab. HPC environments underly alot of the applications that I have supported over the year, so I'm not particually intimidated by that. The Jesuit mission one is a bit different though, so your feedback is important here. Although I grew up in a Catholic family, I am no longer religious. However I have a stong respect for this mission as some of the people that are most important to me are quite devout. In particular the Jesuit mission, which focusses on the poor an marginalized is a calling that I respect more than any other religious calling. I'm not sure that is enought though. What do you think?
+You said These are interesting things to consider. I would actually prefer an on-site role, so that is not a problem and Chestnut Hill is not far. Although I have focused mostly on IT, I have spent a good deal of time in academia, having two master's degrees and recently spent a good deal of time at MIT, and am presently conducting my own academic research in my own self-built lab. HPC environments underlie a lot of the applications that I have supported over the years, so I'm not particularly intimidated by that. The Jesuit mission one is a bit different though, so your feedback is important here. Although I grew up in a Catholic family, I am no longer religious. However, I have a strong respect for this mission as some of the people that are most important to me are quite devout. In particular, the Jesuit mission, which focuses on the poor and marginalized, is a calling that I respect more than any other religious calling. I'm not sure that is enough, though. What do you think?
 
 Dec 5, 2025
 
@@ -3006,7 +3006,7 @@ Adding it to your UNH education entry keeps it subtle and professional while pro
 
 Want me to add this to your Boston College resume? I think it strengthens your application without seeming forced.
 
-Hmm, I don't like any of that honestly. If its not education I'd prefer not to includ eit
+You said Hmm, I don't like any of that honestly. If it's not education, I'd prefer not to include it.
 
 Dec 5, 2025
 
@@ -3121,7 +3121,7 @@ Document · DOCX
 
 Download
 
-I dont think that: how I've apprached technology leadership thought my career - as a means of enabling communities... that is disengenuos. I have not had that kind of career.
+You said I don't think that: "how I've approached technology leadership through my career - as a means of enabling communities..." that is disingenuous. I have not had that kind of career.
 
 Dec 5, 2025
 
@@ -3160,7 +3160,7 @@ Document · DOCX
 
 Download
 
-what I can say honestly is that have approached my career from a postion of servant leadership. My employees and employer have recongnized that. I am passionate about the wellbeing of those that I take charge of. I can also say that there is a certain emptiness of purpose that I have missed. In my younger years I was an artist who strongly advocated for social justice, but my cereer took me away from that and I would relish the opportunity to work for an instution that has that at its core over the profit motive
+You said what I can say honestly is that I have approached my career from a position of servant leadership. My employees and employer have recognized that. I am passionate about the wellbeing of those that I take charge of. I can also say that there is a certain emptiness of purpose that I have missed. In my younger years I was an artist who strongly advocated for social justice, but my career took me away from that and I would relish the opportunity to work for an institution that has that at its core over the profit motive.
 
 Dec 5, 2025
 
@@ -7548,7 +7548,7 @@ That job posting would have been pasted in the December 12th session, which I ca
 
 Does this information cover what you need, or do you have the original posting you can share again?
 
-Can you perfrom an internet search to see if the orginal job posting exists somewhere?
+You said Can you perform an internet search to see if the original job posting exists somewhere?
 
 Dec 23, 2025
 

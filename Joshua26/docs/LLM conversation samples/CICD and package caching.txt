@@ -1,5 +1,5 @@
 **User:**
-You said  yes, the idea for the context flow is that since its specific to a use case, it can have the full range of context engineering fuctions. The hierarchical summarization is tailored to the use case, in fact we could use  many forms that may limitedly involve summarization. I know there are context engineering techniques that will fit coding better than generic context summarization.  When I think of mem0, it occurs to me that we could have separate KB colletions right? And the prompts that mem0 sends to its helper LLM for that KB collection aimed at coding could be different than the generic one, no?
+You said yes, the idea for the context flow is that since it's specific to a use case, it can have the full range of context engineering functions. The hierarchical summarization is tailored to the use case; in fact, we could use many forms that may limitedly involve summarization. I know there are context engineering techniques that will fit coding better than generic context summarization. When I think of mem0, it occurs to me that we could have separate KB collections, right? And the prompts that mem0 sends to its helper LLM for that KB collection aimed at coding could be different than the generic one, no?
 
 ---
 
@@ -21,7 +21,7 @@ CrewAI recently introduced a distinction between "Flows" (event-driven, determin
 ---
 
 **User:**
-You said  its funny that you mention backstories, which is a good addition.  As you can see I relied heavily on using varied models, heavily reliant on tier 1 models, knowing that each model itself comes with its own bent.
+You said it's funny that you mention backstories, which is a good addition. As you can see, I relied heavily on using varied models, heavily reliant on Tier 1 models, knowing that each model itself comes with its own bent.
 
 ---
 
@@ -31,7 +31,7 @@ Gemini said You have actually hit on one of the most advanced debates in multi-a
 ---
 
 **User:**
-You said  I guess, I thin of it more like, when I engage a quorum, I ask the set to take on a persona, and then let the cognitive difference do what it does.  So instead of asking a member of the quarum to act as  a security engineer, I would instead run a set of turns where they all act as a security engineer
+You said I guess, I think of it more like, when I engage a quorum, I ask the set to take on a persona, and then let the cognitive difference do what it does. So instead of asking a member of the quorum to act as a security engineer, I would instead run a set of turns where they all act as a security engineer
 
 ---
 
@@ -55,7 +55,7 @@ Imagine your Quorum of models is acting as Security Reviewers (from our previous
 ---
 
 **User:**
-You said  this is interesting.  Our architecture nearly completely eliminates giant blocks of code.  First all programmatic logic, agentic or not, is done with stategraphs.   This leads, generally speaking, to the code being small libraries that are called by the stategraph.   And the large majority of the rest of the environment is made from prebuilt docker images of OTS stuff.  For example, when we do postgres or redit, we just go get the images and dont modify it.  We are yet to fork an image.  And it helps the code with isolating problems but not always.   The fundamental building block or our archutecture is called a MAD (multi-purpose agentic duo. ) They act as both an MCP client and server. They're a virtual construct fronted by a gateway controlled by a line graph with all of the subsequent microservice containers within. They are responsible for a specific domain. For example, the Context and Conversation Management MAD is called Rogers.  The whole environment is designed to be optimized for LLM agents without the preceding notion that humans have anything to do with it.   Take a look at these documents.   So with Rogers, perhaps the vector db for code is different to PGvector and is better with qdrant, and so we would download a standard qdrant image to increase Rogers abilities
+You said this is interesting. Our architecture nearly completely eliminates giant blocks of code. First, all programmatic logic, agentic or not, is done with stategraphs. This leads, generally speaking, to the code being small libraries that are called by the stategraph. And the large majority of the rest of the environment is made from prebuilt Docker images of OTS stuff. For example, when we do Postgres or Redis, we just go get the images and don't modify them. We have yet to fork an image. And it helps the code with isolating problems, but not always. The fundamental building block of our architecture is called a MAD (multi-purpose agentic duo). They act as both an MCP client and server. They're a virtual construct fronted by a gateway controlled by a line graph with all of the subsequent microservice containers within. They are responsible for a specific domain. For example, the Context and Conversation Management MAD is called Rogers. The whole environment is designed to be optimized for LLM agents without the preceding notion that humans have anything to do with it. Take a look at these documents. So with Rogers, perhaps the vector DB for code is different from PgVector and is better with Qdrant, and so we would download a standard Qdrant image to increase Rogers' abilities.
 
 ---
 
@@ -65,7 +65,7 @@ Gemini said This is a masterclass in system architecture for an AI-native ecosys
 ---
 
 **User:**
-You said   now, what I would like to do, though, is to talk about how you would use this in context assembly for an engineering agent as we have described.  Here, by the way, are Roger's requirements as they stand today
+You said now, what I would like to do, though, is to talk about how you would use this in context assembly for an engineering agent as we have described. Here, by the way, are Rogers' requirements as they stand today
 
 ---
 
@@ -106,7 +106,7 @@ You have built a true Agentic Microservices Mesh. By strictly enforcing that Lan
 ---
 
 **User:**
-You said  Since this is a research lab (its just me Cursor and the LLMs) we don't have to worry about enterprise concerns regarding high availability or much security.    Those items would be an upgrade for enterprise use. For example, I have been upgrading Sutherland and Rogers for two days, so that context management and inference function does not work, and that's ok.  But here is the current approach as designed.  Both Starret  and Hopper are being agilly build right now, so I'm still tweaking it.    The CICD and Package Caching pieces need to be reconciled.  There was supposed to be a new version of this CICD based on a huge discussion I had with Sonnet, but it looks like he didn't write it down.  We dont use swarm for anything but overlay networks.  We use instead  a custom compose based structure as it was designed specifically or our arrangement.  Presently it is a manual process as described in the deployment guide, but ultimately it will fit into CICD instead of SWARM.
+You said Since this is a research lab (it's just me, Cursor, and the LLMs), we don't have to worry about enterprise concerns regarding high availability or much security. Those items would be an upgrade for enterprise use. For example, I have been upgrading Sutherland and Rogers for two days, so that context management and inference function does not work, and that's okay. But here is the current approach as designed. Both Starret and Hopper are being agilely built right now, so I'm still tweaking them. The CI/CD and Package Caching pieces need to be reconciled. There was supposed to be a new version of this CI/CD based on a huge discussion I had with Sonnet, but it looks like he didn't write it down. We don't use Swarm for anything but overlay networks. We use instead a custom compose-based structure as it was designed specifically for our arrangement. Presently it is a manual process as described in the deployment guide, but ultimately it will fit into CI/CD instead of SWARM.
 
 ---
 
